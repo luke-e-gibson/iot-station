@@ -1,4 +1,4 @@
-import { APIResponse } from "../API"
+import { APIResponse } from "../api/API"
 
 export class AuthService {
 
