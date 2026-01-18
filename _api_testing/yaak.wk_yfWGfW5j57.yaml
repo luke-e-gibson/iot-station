@@ -1,0 +1,14 @@
+type: workspace
+model: workspace
+id: wk_yfWGfW5j57
+createdAt: 2026-01-18T10:23:20.929763200
+updatedAt: 2026-01-18T10:23:20.929763800
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: weather-station-server
+encryptionKeyChallenge: null
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0

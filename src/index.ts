@@ -1,0 +1,20 @@
+import express from 'express';
+import { ServerContext } from './context';
+
+import authApi from './api/auth/api';
+
+const context = ServerContext.getInstance();
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use("/api/auth", authApi);
+
+app.get("/", (req, res) => {
+    res.send("Hello, World!");
+})
+
+app.listen(3000, () => {
+    console.log("Server is running on http://localhost:3000");
+});
