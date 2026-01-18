@@ -1,0 +1,26 @@
+type: http_request
+model: http_request
+id: rq_7ix8bc8xVF
+createdAt: 2026-01-18T11:22:37.356140500
+updatedAt: 2026-01-18T11:23:58.738792500
+workspaceId: wk_yfWGfW5j57
+folderId: fl_McBkzAYSXM
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "deviceToken": "73d447101bef08e04bd6d9a7d891408fff8ebe013401f02d5b2fe69ca6e4a56d"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: zav8WtABQg
+method: POST
+name: Create Device Token Copy
+sortPriority: 0.001
+url: http://localhost:3000/api/auth/token/validate
+urlParameters: []

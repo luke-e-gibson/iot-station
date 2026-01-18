@@ -1,7 +1,8 @@
 import express from 'express';
 import { ServerContext } from './context';
 
-import authApi from './api/auth/api';
+import authApi from './api/Auth';
+import deviceApi from './api/Device';
 
 const context = ServerContext.getInstance();
 const app = express();

@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_mQdzoUXrx3
+createdAt: 2026-01-18T11:09:08.258766700
+updatedAt: 2026-01-18T11:21:25.519334700
+workspaceId: wk_yfWGfW5j57
+folderId: fl_McBkzAYSXM
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidGhlY29kZW1zYXRlcl8iLCJpYXQiOjE3Njg3MzQ0NDYsImV4cCI6MTc2ODczODA0Nn0.d4gOWeylXVDEyE4-Gl8JHTOBkKge08WUQOP65BZlbto",
+      "name": "Test Device"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: zav8WtABQg
+method: POST
+name: Create Device Token
+sortPriority: 0.0
+url: http://localhost:3000/api/auth/token/create
+urlParameters: []

@@ -2,9 +2,9 @@ type: http_request
 model: http_request
 id: rq_puhq25usst
 createdAt: 2026-01-18T10:34:03.386133200
-updatedAt: 2026-01-18T10:44:24.857530400
+updatedAt: 2026-01-18T11:21:09.747181200
 workspaceId: wk_yfWGfW5j57
-folderId: fl_RRJEQR3xAS
+folderId: fl_Rh3c4opQ2P
 authentication: {}
 authenticationType: null
 body:
@@ -22,6 +22,6 @@ headers:
   id: zav8WtABQg
 method: POST
 name: Auth Register User
-sortPriority: 1000.0
+sortPriority: 0.0
 url: http://localhost:3000/api/auth/register
 urlParameters: []
