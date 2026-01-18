@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_DMPBMicYT8
 createdAt: 2026-01-18T10:44:07.188010300
-updatedAt: 2026-01-18T10:44:20.025511200
+updatedAt: 2026-01-18T11:01:06.653528800
 workspaceId: wk_yfWGfW5j57
 folderId: fl_RRJEQR3xAS
 authentication: {}
@@ -23,5 +23,5 @@ headers:
 method: POST
 name: Auth Login User
 sortPriority: 1000.001
-url: http://localhost:3000/api/auth/register
+url: http://localhost:3000/api/auth/login
 urlParameters: []
