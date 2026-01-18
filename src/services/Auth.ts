@@ -6,8 +6,7 @@ export class AuthService {
 
     }
 
-    public login(username: string, password: string): APIResponse<{ userId: string }> {
-        // Implement login logic heres
+    public async login(username: string, password: string): Promise<APIResponse<{ userId: string }>> {
         return {
             errorMessage: null,
             httpCode: null,
@@ -15,7 +14,7 @@ export class AuthService {
         }
     }
 
-    public register(username: string, password: string): APIResponse<{ userId: string }> {
+    public async register(username: string, password: string): Promise<APIResponse<{ userId: string }>> {
         // Implement registration logic here
         return {
             errorMessage: null,
@@ -24,7 +23,7 @@ export class AuthService {
         }
     }
 
-    public createToken(userId: string): APIResponse<string> {
+    public async createToken(userId: string): Promise<APIResponse<string>> {
         // Implement token creation logic here
         return {
             errorMessage: null,

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { ServerContext } from "../../context";
 import { AuthService } from "../../services/Auth";
 import * as z from "zod";
+import { allowedNodeEnvironmentFlags } from "node:process";
 
 const router = Router();
 const auth = ServerContext.getInstance().GetService(AuthService);
@@ -17,7 +18,7 @@ router.get("/", (req, res) => {
   });
 });
 
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
   const parseResult = loginRegisterBodySchema.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({
@@ -26,14 +27,14 @@ router.post("/register", (req, res) => {
     });
   }
 
-  const response = auth.register(
+  const response = await auth.register(
     parseResult.data.username,
     parseResult.data.password,
   );
   res.status(response.httpCode || 200).json(response);
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const parseResult = loginRegisterBodySchema.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({
@@ -42,7 +43,7 @@ router.post("/login", (req, res) => {
     });
   }
 
-  const response = auth.login(
+  const response = await auth.login(
     parseResult.data.username,
     parseResult.data.password,
   );
@@ -50,8 +51,9 @@ router.post("/login", (req, res) => {
   res.status(response.httpCode || 200).json(response);
 });
 
-router.post("/create/token", (req, res) => {
-  auth.createToken("");
+router.post("/create/token", async (req, res) => {
+  const response = await auth.createToken("");
+  res.status(response.httpCode || 200).json(response);
 });
 
 export default router;
