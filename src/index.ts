@@ -11,6 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authApi);
+app.use("/api/device", deviceApi);
 
 app.get("/", (req, res) => {
     res.send("Hello, World!");

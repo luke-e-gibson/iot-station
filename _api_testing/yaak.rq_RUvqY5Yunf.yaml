@@ -1,10 +1,10 @@
 type: http_request
 model: http_request
-id: rq_mQdzoUXrx3
-createdAt: 2026-01-18T11:09:08.258766700
-updatedAt: 2026-01-18T11:33:13.011619500
+id: rq_RUvqY5Yunf
+createdAt: 2026-01-18T11:27:23.255191300
+updatedAt: 2026-01-18T11:35:33.479843900
 workspaceId: wk_yfWGfW5j57
-folderId: fl_McBkzAYSXM
+folderId: fl_Z6GL2MnNGr
 authentication: {}
 authenticationType: null
 body:
@@ -19,9 +19,9 @@ headers:
 - enabled: true
   name: Content-Type
   value: application/json
-  id: zav8WtABQg
+  id: JaaiYe5p2N
 method: POST
-name: Create Device Token
-sortPriority: 0.0
-url: http://localhost:3000/api/auth/token/create
+name: Create Device
+sortPriority: 0.0009
+url: http://localhost:3000/api/device/create
 urlParameters: []

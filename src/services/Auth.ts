@@ -109,6 +109,13 @@ export class AuthService {
         }
     }
 
+    public validateToken(authToken: string): { userId: number; username: string } | null {
+        const decoded = JWT.verify(authToken, "temp") as { userId: number, username: string };
+        if(!decoded) {
+            return null;
+        }
+        return { userId: decoded.userId, username: decoded.username };
+    }
 
     public async verifyDeviceToken(deviceToken: string): Promise<APIResponse<{ valid: boolean }>> {
         const tokens = await db.select().from(schema.deviceTokensTable).where(eq(schema.deviceTokensTable.token, deviceToken)).limit(1);
