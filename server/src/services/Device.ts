@@ -98,4 +98,54 @@ export class DeviceService {
             data: { saved: true}
         }
     }
+
+    public async getDeviceData(authToken: string, deviceId: string): Promise<APIResponse<{ device: { id: number, name: string, deviceId: string }, data: Array<{ id: number, data: Record<string, any> }> }>> {
+        const authService = ServerContext.getInstance().GetService(AuthService);
+        const validatedUser = authService.validateToken(authToken);
+        if(!validatedUser) {
+            return {
+                errorMessage: "Invalid user",
+                httpCode: 401,
+                data: null
+            }
+        }
+
+        const devices = await db.select().from(schema.devicesTable).where(eq(schema.devicesTable.deviceId, deviceId)).limit(1);
+        if(devices.length === 0) {
+            return {
+                errorMessage: "Device not found",
+                httpCode: 404,
+                data: null
+            }
+        }
+
+        const device = devices[0];
+        
+        // Verify the device belongs to the user
+        if(device.userId !== validatedUser.userId) {
+            return {
+                errorMessage: "Unauthorized",
+                httpCode: 403,
+                data: null
+            }
+        }
+
+        const deviceData = await db.select().from(schema.deviceDataTable).where(eq(schema.deviceDataTable.deviceId, device.id));
+
+        return {
+            errorMessage: null,
+            httpCode: 200,
+            data: {
+                device: {
+                    id: device.id,
+                    name: device.name,
+                    deviceId: device.deviceId
+                },
+                data: deviceData.map(d => ({
+                    id: d.id,
+                    data: d.data as Record<string, any>
+                }))
+            }
+        }
+    }
 }
