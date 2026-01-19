@@ -17,6 +17,11 @@ const deviceUploadDataSchema = z.object({
     data: z.record(z.string(), z.any()),
 });
 
+const getDeviceDataSchema = z.object({
+    authToken: z.string().min(1),
+    deviceId: z.string().min(1),
+});
+
 router.get("/", (req, res) => {
     res.status(201).json({
         message: "Device API",
@@ -40,7 +45,7 @@ router.post("/create", async (req, res) => {
     return res.status(response.httpCode || 200).json(response);
 })
 
-router.get("/list", async (req, res) => {
+router.post("/list", async (req, res) => {
     const authToken = req.body.authToken;
     if(!authToken || typeof authToken !== "string") {
         return res.status(400).json({
@@ -64,6 +69,22 @@ router.post("/data/submit", async (req, res) => {
         parseResult.data.deviceToken,
         parseResult.data.deviceId,
         parseResult.data.data
+    );
+    return res.status(response.httpCode || 200).json(response);
+});
+
+router.post("/data/get", async (req, res) => {
+    const parseResult = getDeviceDataSchema.safeParse(req.body);
+    if(!parseResult.success) {
+        return res.status(400).json({
+            error: "Invalid request data",
+            details: parseResult.error.issues,
+        });
+    }
+
+    const response = await device.getDeviceData(
+        parseResult.data.authToken,
+        parseResult.data.deviceId
     );
     return res.status(response.httpCode || 200).json(response);
 });
