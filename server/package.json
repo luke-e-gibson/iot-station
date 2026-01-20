@@ -6,10 +6,13 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "pnpm build:client && pnpm build:server",
-    "build:client": "vite build --outDir dist/client",
-    "build:server": "vite build --outDir dist/server --ssr src/client/app/entry-server.tsx",
-    "preview": "NODE_ENV=production tsx src/index.ts"
+    "build": "pnpm build:client && pnpm build:ssr && pnpm build:backend",
+    "build:client": "vite build --outDir ../../dist/client --emptyOutDir",
+    "build:ssr": "vite build --outDir ../../dist/server --ssr app/entry-server.tsx --emptyOutDir",
+    "build:backend": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/backend/index.js --packages=external",
+    "preview": "NODE_ENV=production node dist/backend/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +25,7 @@
     "@types/pg": "^8.16.0",
     "@vitejs/plugin-react": "^4.5.2",
     "drizzle-kit": "^0.31.8",
+    "esbuild": "^0.27.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

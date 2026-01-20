@@ -1,0 +1,21 @@
+# Migration container - runs database migrations and exits
+FROM node:20-alpine
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@10.18.2 --activate
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install all dependencies (including drizzle-kit)
+RUN pnpm install
+
+# Copy migration files and source
+COPY drizzle ./drizzle
+COPY src/migrate.ts ./src/migrate.ts
+COPY drizzle.config.ts ./
+
+# Run migrations
+CMD ["pnpm", "tsx", "src/migrate.ts"]
