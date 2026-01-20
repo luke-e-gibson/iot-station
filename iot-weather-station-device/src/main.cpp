@@ -75,5 +75,5 @@ void loop() {
       }
   }
 
-  Serial.println("deep sleeped for 10 seconds...");
+  Serial.println("deep sleeped for 60 seconds...");
 }
