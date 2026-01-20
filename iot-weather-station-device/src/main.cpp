@@ -1,18 +1,36 @@
 #include <Arduino.h>
+#include <iot-station.h> 
 
-// put function declarations here:
-int myFunction(int, int);
+#define WIFI_SSID "SuperSecretIOTNetwork"
+#define WIFI_PASSWORD "Password1!-1"
+
+#define DEVICE_ID "your_device_id"
+#define AUTH_TOKEN "your_auth_token"
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Serial.begin(115200);
+  
+  if(!connect_to_wifi(WIFI_SSID, WIFI_PASSWORD)) {
+    Serial.println("Failed to connect to WiFi");
+    return;
+  }
+  Serial.println("Connected to WiFi");
+
+  if(!connect_to_iot_station(DEVICE_ID, AUTH_TOKEN)) {
+    Serial.println("Failed to connect to IoT Station");
+    return;
+  }
+
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
+    if(!is_connected_to_wifi()) return;
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+    if(ping_iot_test()) {
+        Serial.println("Ping to IoT test server successful");
+    } else {
+        Serial.println("Ping to IoT test server failed");
+    }
+
+    delay(60000); // Wait for 1 minute before next ping
 }
