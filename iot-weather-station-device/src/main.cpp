@@ -33,7 +33,7 @@ void setup() {
   IotClientSettings clientSettings = {
       DEVICE_ID,
       AUTH_TOKEN,
-      "iot.example.com"
+      "192.168.1.54:3000" // Local Test
   };
 
   if (!init_iot_station(clientSettings, wifiSettings)) {

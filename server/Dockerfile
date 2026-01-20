@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Copy source code
 COPY . .
@@ -30,17 +30,10 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml* ./
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/index.ts ./src/index.ts
-COPY --from=builder /app/src/context.ts ./src/context.ts
-COPY --from=builder /app/src/db ./src/db
-COPY --from=builder /app/src/services ./src/services
-COPY --from=builder /app/src/api ./src/api
-COPY --from=builder /app/src/client/index.ts ./src/client/index.ts
-COPY --from=builder /app/vite.config.ts ./vite.config.ts
 
 # Set production environment
 ENV NODE_ENV=production
@@ -49,4 +42,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # Start the application
-CMD ["pnpm", "run", "preview"]
+CMD ["node", "dist/backend/index.js"]
