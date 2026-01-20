@@ -7,30 +7,73 @@
 #define DEVICE_ID "your_device_id"
 #define AUTH_TOKEN "your_auth_token"
 
+#define SENSOR_READ_INTERVAL_SECONDS 60.0f
+
+// Define CpuData struct outside of loop() - must be at global scope for template instantiation
+struct CpuData: IotData {
+    float cpu_usage;
+
+    void serialize(JsonDocument& doc) override {
+        IotData::serialize(doc); // Call base class serialize
+        doc["cpu_usage"] = cpu_usage;
+    }
+};
+
 void setup() {
   Serial.begin(115200);
   
-  if(!connect_to_wifi(WIFI_SSID, WIFI_PASSWORD)) {
-    Serial.println("Failed to connect to WiFi");
-    return;
-  }
-  Serial.println("Connected to WiFi");
+  Serial.println();
+  Serial.println("Initializing IoT station...");
+  
+  WifiSettings wifiSettings = {
+      WIFI_SSID,
+      WIFI_PASSWORD
+  };
+  
+  IotClientSettings clientSettings = {
+      DEVICE_ID,
+      AUTH_TOKEN,
+      "iot.example.com"
+  };
 
-  if(!connect_to_iot_station(DEVICE_ID, AUTH_TOKEN)) {
-    Serial.println("Failed to connect to IoT Station");
-    return;
+  if (!init_iot_station(clientSettings, wifiSettings)) {
+      Serial.println("Failed to initialize IoT station:");
+      Serial.println(get_error_message());
+      while (true) {
+          delay(1000);
+      }
   }
+
+  Serial.println("IoT station initialized successfully.");
 
 }
 
 void loop() {
-    if(!is_connected_to_wifi()) return;
+  Serial.println("Collecting CPU data...");
 
-    if(ping_iot_test()) {
-        Serial.println("Ping to IoT test server successful");
-    } else {
-        Serial.println("Ping to IoT test server failed");
-    }
+  CpuData data;
+  data.time = get_npt_time();
+  if(data.time < 0) {
+      Serial.println("Failed to get NTP time:");
+      Serial.println(get_error_message());
+      while (true) {
+          delay(1000);
+      }
+  }
 
-    delay(60000); // Wait for 1 minute before next ping
+  data.cpu_usage = ESP.getCpuFreqMHz() / 160.0f * 100.0f; // Example CPU usage calculation
+
+  Serial.println("Sending data to IoT station...");
+  send_iot_data(data);
+  Serial.println("Data sent successfully.");
+
+  if(deep_sleep_iot_client(SENSOR_READ_INTERVAL_SECONDS) < 0) {
+      Serial.println("Failed to enter deep sleep:");
+      Serial.println(get_error_message());
+      while (true) {
+          delay(1000);
+      }
+  }
+
+  Serial.println("deep sleeped for 10 seconds...");
 }
