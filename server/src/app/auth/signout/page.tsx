@@ -19,11 +19,11 @@ export default function SignOutPage() {
         }
       })
     }
-  }, [session]);
+  }, [router, session]);
 
   useEffect(() => {
-    signOutCallback();
-  }, [session]);
+    signOutCallback().then(() => {console.log("Sign out attempted")}).catch((err) => {console.error("Error during sign out:", err)});
+  }, [session, signOutCallback]);
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
