@@ -34,7 +34,7 @@ export function NavDevices() {
       <SidebarMenu>
           <SidebarMenuItem >
             <SidebarMenuButton asChild>
-              <a suppressHydrationWarning={true} href={`/devices/${crypto.randomUUID()}`}>
+              <a suppressHydrationWarning={true} href={`/dashboard/device/${crypto.randomUUID()}`}>
                 <IconDots />
                 <span>Test Device</span>
               </a>
