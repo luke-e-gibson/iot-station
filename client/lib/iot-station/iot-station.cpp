@@ -154,42 +154,63 @@ bool send_iot_data(IotData &data)
 {
     if (!_is_connected_to_wifi())
     {
-        lastErrorMessage = "Not connected to WiFi";
+        _set_last_error("Not connected to WiFi");
         return false;
     }
 
     WiFiClient client;
     HTTPClient http;
 
-    String serverUrl = String(_get_iot_settings().server_url) + "/data";
+    // Construct the URL
+    String url = "http://";
+    url += defaultSettings.server_url;
+    url += "/weather";
 
-    if (!http.begin(client, serverUrl))
-    {
-        lastErrorMessage = "Failed to begin HTTP connection";
-        return false;
-    }
+    // Create JSON payload
+    DynamicJsonDocument doc(256);
+    data.serialize(doc);
 
+    String payload;
+    serializeJson(doc, payload);
+
+    // Make HTTP POST request
+    http.begin(client, url);
     http.addHeader("Content-Type", "application/json");
-    http.addHeader("Device-ID", _get_iot_settings().device_id);
-    http.addHeader("Auth-Token", _get_iot_settings().auth_token);
 
-    StaticJsonDocument<256> jsonDoc;
-    data.serialize(jsonDoc);
+    int httpResponseCode = http.POST(payload);
 
-    String requestBody;
-    serializeJson(jsonDoc, requestBody);
-
-    int httpResponseCode = http.POST(requestBody);
-
-    if (httpResponseCode != HTTP_CODE_OK)
+    if (httpResponseCode == 201)
     {
-        lastErrorMessage = "Failed to send data to IoT station";
+        _set_last_error("");
+        http.end();
+        return true;
+    }
+    else if (httpResponseCode == 400)
+    {
+        _set_last_error("Bad Request - Invalid or missing parameters");
         http.end();
         return false;
     }
-
-    http.end();
-    return true;
+    else if (httpResponseCode == 500)
+    {
+        _set_last_error("Internal Server Error - Database or server error");
+        http.end();
+        return false;
+    }
+    else if (httpResponseCode > 0)
+    {
+        String error = "HTTP Error: ";
+        error += httpResponseCode;
+        _set_last_error(error.c_str());
+        http.end();
+        return false;
+    }
+    else
+    {
+        _set_last_error("Failed to send HTTP request");
+        http.end();
+        return false;
+    }
 }
 
 

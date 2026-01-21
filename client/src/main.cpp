@@ -1,20 +1,30 @@
 #include <Arduino.h>
 #include <iot-station.h> 
 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
 #define WIFI_SSID "SuperSecretIOTNetwork"
 #define WIFI_PASSWORD "Password1!-1"
 
 #define DEVICE_ID "your_device_id"
 #define AUTH_TOKEN "your_auth_token"
 
+#define SEALEVELPRESSURE_HPA (1013.25)
+
 #define SENSOR_READ_INTERVAL_SECONDS 60.0f
 
+Adafruit_BME280 bme; 
+
 struct CpuData: IotData {
-    float cpu_usage;
+    float temperature;
+    float humidity;
 
     void serialize(JsonDocument& doc) override {
         IotData::serialize(doc); // Call base class serialize
-        doc["cpu_usage"] = cpu_usage;
+        doc["temperature"] = temperature;
+        doc["humidity"] = humidity;
     }
 };
 
@@ -43,6 +53,14 @@ void setup() {
       }
   }
 
+  Serial.println("Setting up BME280 sensor...");
+  if(!bme.begin(0x76)) {
+      Serial.println("Could not find a valid BME280 sensor, check wiring!");
+      while (true) {
+          delay(1000);
+      }
+  }
+
   Serial.println("IoT station initialized successfully.");
 
 }
@@ -60,11 +78,17 @@ void loop() {
       }
   }
 
-  data.cpu_usage = ESP.getCpuFreqMHz() / 160.0f * 100.0f; // Example CPU usage calculation
+  data.temperature = bme.readTemperature();
+  data.humidity = bme.readHumidity();
 
   Serial.println("Sending data to IoT station...");
   send_iot_data(data);
   Serial.println("Data sent successfully.");
+
+  Serial.println("Sent Data:");
+    Serial.print("  Time: "); Serial.println(data.time);
+    Serial.print("  Temperature: "); Serial.print(data.temperature); Serial.println(" °C");
+    Serial.print("  Humidity: "); Serial.print(data.humidity); Serial.println(" %");
 
   if(deep_sleep_iot_client(SENSOR_READ_INTERVAL_SECONDS) < 0) {
       Serial.println("Failed to enter deep sleep:");

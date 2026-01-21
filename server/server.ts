@@ -7,6 +7,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.post('/weather', (req: express.Request, res: express.Response) => {
+    console.log('Received data:', req.body)
     const { temperature, humidity } = req.body
     const stmt = database.prepare('INSERT INTO weather_data (temperature, humidity) VALUES (?, ?)')
     stmt.run(temperature, humidity)
