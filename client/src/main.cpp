@@ -9,7 +9,6 @@
 
 #define SENSOR_READ_INTERVAL_SECONDS 60.0f
 
-// Define CpuData struct outside of loop() - must be at global scope for template instantiation
 struct CpuData: IotData {
     float cpu_usage;
 
