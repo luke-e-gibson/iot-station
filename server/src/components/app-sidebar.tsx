@@ -32,7 +32,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { getSession, useSession } from "@/server/better-auth/client"
+import { authClient, getSession, useSession } from "@/server/better-auth/client"
+import { TeamSwitcher } from "./team-switcher"
 
 const data = {
   navMain: [
@@ -57,14 +58,20 @@ const data = {
       icon: IconReport,
     }
   ],
+  teams: [
+    { name: "Personal Team", logo: IconInnerShadowTop, plan: "Pro Plan" },
+  ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useSession()
+  const orgs = authClient.useListOrganizations();
+  console.log("Orgs in sidebar:", orgs.data);
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
+        <TeamSwitcher teams={orgs.data?.map(org => ({ name: org.name, logo: IconInnerShadowTop, plan: "None" })) ?? [{ name: "Personal Team", logo: IconInnerShadowTop, plan: "Pro Plan" }]} />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
