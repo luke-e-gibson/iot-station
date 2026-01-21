@@ -1,7 +1,6 @@
-import * as config from "./config.json"
 import { DatabaseSync } from "node:sqlite"
 
-const database = new DatabaseSync(config.database.location)
+const database = new DatabaseSync(":memory:")
 database.exec(`
 CREATE TABLE IF NOT EXISTS weather_data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

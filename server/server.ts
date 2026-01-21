@@ -1,5 +1,5 @@
 import express from 'express'
-import database from './db'
+import database from './db.ts'
 
 const app = express()
 
