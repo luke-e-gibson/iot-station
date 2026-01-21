@@ -4,7 +4,7 @@
 
 ## TODO
 - Server
-    - [] Teams with better auth
+    - [ ] Teams with better auth
         - [x] Create teams
         - [ ] Manage people
         - [ ] Allow to view resources
