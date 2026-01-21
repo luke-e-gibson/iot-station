@@ -1,3 +1,0 @@
-- [] Make sure database has user relations
-- [] Auth is in headers.
-    - [] Middleware?
