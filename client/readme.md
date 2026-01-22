@@ -1,4 +1,13 @@
 # Notes
-- ESP8266 is only supported
-- ESP8266 needs rst pin to be connected to D0/GPIO16
-    - Can not be connected for upload of new code
+
+Build tested on all boards in platformio.ini:
+
+- Nano RP2040 Connect
+- Nano 33 IoT
+- NodeMCU v2
+- ESP32 Dev
+
+Tested with:
+
+- Nano RP2040 Connect
+- ESP32 Dev
