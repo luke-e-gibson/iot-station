@@ -5,16 +5,13 @@
 #include "arduino_secrets.h"
 
 JsonDocument doc;
-WiFiClient client;
-IPAddress server_ip;
-int serverPort;
+WiFiClient wifi;
+HttpClient client(wifi, SECRET_SERVER_ADDRESS, SECRET_SERVER_PORT);
 
 void setup()
 {
   Serial.begin(9600);
-  client = connect_wifi(SECRET_SSID, SECRET_PASS);
-  server_ip = IPAddress(SECRET_SERVER_CONFIG);
-  serverPort = 3000;
+  connect_wifi(SECRET_SSID, SECRET_PASS);
 }
 
 void loop()
@@ -22,7 +19,7 @@ void loop()
   doc["temperature"] = random(10, 31);
   doc["humidity"] = random(10, 31);
 
-  if (send_json_data(doc, client, server_ip.toString().c_str(), serverPort))
+  if (send_json_data(doc, client, "/weather"))
   {
     if (Serial)
     {
@@ -40,5 +37,5 @@ void loop()
     }
   }
 
-  delay(20000);
+  delay(60000);
 }

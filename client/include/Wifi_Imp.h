@@ -9,7 +9,8 @@
 #endif
 
 #include <ArduinoJson.h>
+#include <ArduinoHttpClient.h>
 
-WiFiClient connect_wifi(const char *ssid, const char *password);
-bool send_json_data(ArduinoJson::JsonDocument &doc, WiFiClient client, const char *server, int port);
+void connect_wifi(const char *ssid, const char *password);
+bool send_json_data(ArduinoJson::JsonDocument &doc, HttpClient &client, const char *path = "/weather");
 void print_wifi_status();

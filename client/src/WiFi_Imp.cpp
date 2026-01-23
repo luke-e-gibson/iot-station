@@ -1,88 +1,50 @@
 #include "WiFi_Imp.h"
-
-#include "ArduinoJson.h"
+#include <ArduinoJson.h>
+#include <ArduinoHttpClient.h>
 
 void print_wifi_status()
 {
-    // print the SSID of the network you're attached to:
     Serial.print("SSID: ");
     Serial.println(WiFi.SSID());
-
-    // print your board's IP address:
-    IPAddress ip = WiFi.localIP();
     Serial.print("IP Address: ");
-    Serial.println(ip);
+    Serial.println(WiFi.localIP());
 }
 
-WiFiClient connect_wifi(const char *ssid, const char *password)
+void connect_wifi(const char *ssid, const char *password)
 {
+    int status = WL_IDLE_STATUS;
 
-#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_RP2040)
-    // check for the WiFi module:
-    if (WiFi.status() == WL_NO_MODULE)
+    while (status != WL_CONNECTED)
     {
-        Serial.println("Communication with WiFiNINA module failed!");
-        // don't continue
-        while (true)
-            ;
-    }
-#endif
-
-    WiFi.begin(ssid, password);
-
-    // attempt to connect to WiFi network:
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        Serial.print("Attempting to connect to SSID: ");
+        Serial.print("Attempting to connect to Network named: ");
         Serial.println(ssid);
-
+        status = WiFi.begin(ssid, password);
         delay(5000);
     }
+
     Serial.println("Connected to WiFi");
     print_wifi_status();
-
-    WiFiClient client;
-    return client;
 }
 
-bool send_json_data(ArduinoJson::JsonDocument &doc, WiFiClient client, const char *server, int port)
+bool send_json_data(JsonDocument &doc, HttpClient &client, const char *path)
 {
     String json = doc.as<String>();
 
-    if (client.connect(server, port))
-    {
-        Serial.println("connected to server");
-        // Make a HTTP POST request
-        client.println("POST /weather HTTP/1.1");
+    client.beginRequest();
+    client.post(path);
+    client.sendHeader("Content-Type", "application/json");
+    client.sendHeader("Content-Length", json.length());
+    client.beginBody();
+    client.print(json);
+    client.endRequest();
 
-        // Corrrect HTTP headers
-        client.print("Host: ");
-        client.print(server);
-        client.print(":");
-        client.println(port);
+    int statusCode = client.responseStatusCode();
+    String response = client.responseBody();
 
-        client.println("Content-Type: application/json");
-        client.print("Content-Length: ");
-        client.println(json.length());
-        client.println("Connection: close");
-        client.println();
-        client.println(json);
-        client.println();
+    Serial.print("Status code: ");
+    Serial.println(statusCode);
+    Serial.print("Response: ");
+    Serial.println(response);
 
-        while (client.connected() || client.available())
-        {
-            if (client.available())
-            {
-                char c = client.read();
-                Serial.write(c);
-            }
-        }
-        client.stop();
-    }
-    else
-    {
-        return false;
-    }
-
-    return true;
+    return (statusCode > 0);
 }
