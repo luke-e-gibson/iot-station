@@ -5,6 +5,7 @@ Build tested on all boards in platformio.ini:
 - Nano RP2040 Connect
 - Nano 33 IoT
 - NodeMCU v2
+- D1 Mini
 - ESP32 Dev
 
 Tested with:

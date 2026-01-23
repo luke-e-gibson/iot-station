@@ -45,14 +45,12 @@ void connect_wifi(const char *ssid, const char *password)
 
 bool send_json_data(JsonDocument &doc, HttpClient &client, const char *path)
 {
-    String json = doc.as<String>();
-
     client.beginRequest();
     client.post(path);
     client.sendHeader("Content-Type", "application/json");
-    client.sendHeader("Content-Length", json.length());
+    client.sendHeader("Content-Length", measureJson(doc));
     client.beginBody();
-    client.print(json);
+    serializeJson(doc, client);
     client.endRequest();
 
     int statusCode = client.responseStatusCode();
