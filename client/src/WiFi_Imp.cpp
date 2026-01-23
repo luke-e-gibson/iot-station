@@ -36,7 +36,7 @@ WiFiClient connect_wifi(const char *ssid, const char *password)
         Serial.print("Attempting to connect to SSID: ");
         Serial.println(ssid);
 
-        delay(1000);
+        delay(5000);
     }
     Serial.println("Connected to WiFi");
     print_wifi_status();
@@ -55,12 +55,12 @@ bool send_json_data(ArduinoJson::JsonDocument &doc, WiFiClient client, const cha
         // Make a HTTP POST request
         client.println("POST /weather HTTP/1.1");
 
-        //Corrrect HTTP headers
+        // Corrrect HTTP headers
         client.print("Host: ");
         client.print(server);
         client.print(":");
         client.println(port);
-        
+
         client.println("Content-Type: application/json");
         client.print("Content-Length: ");
         client.println(json.length());
@@ -78,7 +78,9 @@ bool send_json_data(ArduinoJson::JsonDocument &doc, WiFiClient client, const cha
             }
         }
         client.stop();
-    } else {
+    }
+    else
+    {
         return false;
     }
 
