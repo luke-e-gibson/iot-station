@@ -12,3 +12,4 @@ Tested with:
 
 - Nano RP2040 Connect
 - ESP32 Dev
+- NodeMCU v2
