@@ -12,5 +12,5 @@
 #include <ArduinoHttpClient.h>
 
 void connect_wifi(const char *ssid, const char *password);
-bool send_json_data(ArduinoJson::JsonDocument &doc, HttpClient &client, const char *path = "/weather");
+bool send_json_data(JsonDocument &doc, HttpClient &client, const char *path);
 void print_wifi_status();
