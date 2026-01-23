@@ -16,26 +16,33 @@ void setup()
 
 void loop()
 {
-  doc["temperature"] = random(10, 31);
-  doc["humidity"] = random(10, 31);
-
-  if (send_json_data(doc, client, "/weather"))
+  if (WiFi.status() == WL_CONNECTED)
   {
-    if (Serial)
+    doc.clear();
+    doc["temperature"] = random(10, 31);
+    doc["humidity"] = random(10, 31);
+
+    if (send_json_data(doc, client, "/weather"))
     {
-      Serial.print("JSON data sent successfully: ");
-      serializeJson(doc, Serial);
-      Serial.println();
+      if (Serial)
+      {
+        Serial.print("JSON data sent successfully: ");
+        serializeJson(doc, Serial);
+        Serial.println();
+      }
     }
+    else
+    {
+      if (Serial)
+      {
+        Serial.println("Failed to send JSON data");
+        print_wifi_status();
+      }
+    }
+    delay(60000);
   }
   else
   {
-    if (Serial)
-    {
-      Serial.println("Failed to send JSON data");
-      print_wifi_status();
-    }
+    connect_wifi(SECRET_SSID, SECRET_PASS);
   }
-
-  delay(60000);
 }

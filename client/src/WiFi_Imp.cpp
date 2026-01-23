@@ -4,14 +4,31 @@
 
 void print_wifi_status()
 {
-    Serial.print("SSID: ");
-    Serial.println(WiFi.SSID());
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    if (Serial)
+    {
+        Serial.print("SSID: ");
+        Serial.println(WiFi.SSID());
+        Serial.print("IP Address: ");
+        Serial.println(WiFi.localIP());
+    }
 }
 
 void connect_wifi(const char *ssid, const char *password)
 {
+#if defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_ARCH_RP2040)
+    if (WiFi.status() == WL_NO_MODULE)
+    {
+        if (Serial)
+        {
+            Serial.println("Communication with WiFiNINA module failed!");
+        }
+        while (true)
+        {
+            delay(100);
+        }
+    }
+#endif
+
     int status = WL_IDLE_STATUS;
 
     while (status != WL_CONNECTED)
@@ -39,12 +56,16 @@ bool send_json_data(JsonDocument &doc, HttpClient &client, const char *path)
     client.endRequest();
 
     int statusCode = client.responseStatusCode();
-    String response = client.responseBody();
 
-    Serial.print("Status code: ");
-    Serial.println(statusCode);
-    Serial.print("Response: ");
-    Serial.println(response);
+    if (Serial)
+    {
+        String response = client.responseBody();
 
-    return (statusCode > 0);
+        Serial.print("Status code: ");
+        Serial.println(statusCode);
+        Serial.print("Response: ");
+        Serial.println(response);
+    }
+
+    return (statusCode >= 200 && statusCode < 300);
 }
