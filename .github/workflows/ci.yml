@@ -36,14 +36,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Extract PlatformIO environments
+      - name: Extract PlatformIO environments and prime cache
         id: pioenvs
         run: |
-          sudo apt-get install -y jq
+          sudo apt-get update -y && sudo apt-get install -y jq
           pip install --upgrade platformio
           envs=$(pio project config --json-output | jq -r '.[] | select(.[0] | startswith("env:")) | .[0] | sub("env:"; "")')
           json=$(printf '%s\n' "$envs" | jq -R . | jq -s . | jq -c .)
+
+          # Prime PlatformIO by installing required platforms (no build)
+          for e in $(echo "$json" | jq -r '.[]'); do
+            echo "Priming PlatformIO for env: $e"
+            platform=$(pio project config --json-output | jq -r --arg env "$e" '.env[$env].platform // empty')
+            if [ -n "$platform" ]; then
+              pio platform install "$platform" || true
+            fi
+          done
+
           echo "matrix=$json" >> $GITHUB_OUTPUT
+
+      - name: Cache PlatformIO and pip (prime)
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.local
+            ~/.platformio/.cache
+            ~/.platformio/packages
+            ~/.platformio/platforms
+            ~/.platformio/toolchains
+          key: ${{ runner.os }}-platformio-prime-${{ hashFiles('client/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-prime-
+            ${{ runner.os }}-platformio-
 
   PlatformIoBuild:
     needs: PreparePlatformIO
@@ -60,12 +85,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - uses: actions/cache@v5
+      - name: Cache PlatformIO and pip
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
+            ~/.local
             ~/.platformio/.cache
-          key: ${{ runner.os }}-pio
+            ~/.platformio/packages
+            ~/.platformio/platforms
+            ~/.platformio/toolchains
+          key: ${{ runner.os }}-platformio-${{ matrix.env }}-${{ hashFiles('client/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-${{ matrix.env }}-${{ hashFiles('client/platformio.ini') }}
+            ${{ runner.os }}-platformio-prime-${{ hashFiles('client/platformio.ini') }}
+            ${{ runner.os }}-platformio-${{ matrix.env }}-
+            ${{ runner.os }}-platformio-
 
       - uses: actions/setup-python@v6
         with:
