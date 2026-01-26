@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y jq
           pip install --upgrade platformio
           envs=$(pio project config --json-output | jq -r '.[] | select(.[0] | startswith("env:")) | .[0] | sub("env:"; "")')
-          json=$(printf '%s\n' "$envs" | jq -R . | jq -s .)
+          json=$(printf '%s\n' "$envs" | jq -R . | jq -s . | jq -c .)
           echo "matrix=$json" >> $GITHUB_OUTPUT
 
   PlatformIoBuild:
