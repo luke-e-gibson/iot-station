@@ -1,39 +1,121 @@
 name: Continuous Integration
 run-name: CI Pipeline
-on: [pull_request]
+
+on:
+  pull_request:
 
 jobs:
   BuildDocker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Set up qemu
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v4
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v6
         with:
           context: ./server
           file: ./server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
 
-  PlatformIoBuild:
+  PreparePlatformIO:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    outputs:
+      matrix: ${{ steps.pioenvs.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Extract PlatformIO environments and prime cache
+        id: pioenvs
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y jq
+          pip install --upgrade platformio
+          envs=$(pio project config --json-output | jq -r '.[] | select(.[0] | startswith("env:")) | .[0] | sub("env:"; "")')
+          json=$(printf '%s\n' "$envs" | jq -R . | jq -s . | jq -c .)
+
+          # Prime PlatformIO by installing required platforms (no build)
+          for e in $(echo "$json" | jq -r '.[]'); do
+            echo "Priming PlatformIO for env: $e"
+            platform=$(pio project config --json-output | jq -r --arg env "env:$e" '.[] | select(.[0] == $env) | .[1][] | select(type=="object") | .platform // empty')
+            if [ -n "$platform" ]; then
+              pio platform install "$platform" || true
+            fi
+          done
+
+          echo "matrix=$json" >> $GITHUB_OUTPUT
+
+      - name: Cache PlatformIO and pip (prime)
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pip
+            ~/.local
             ~/.platformio/.cache
-          key: ${{ runner.os }}-pio
-      - uses: actions/setup-python@v5
+            ~/.platformio/lib
+            ~/.platformio/packages
+            ~/.platformio/platforms
+            ~/.platformio/toolchains
+            client/.pio/libdeps
+          key: ${{ runner.os }}-platformio-prime-${{ hashFiles('client/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-prime-
+            ${{ runner.os }}-platformio-
+
+  PlatformIoBuild:
+    needs: PreparePlatformIO
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    strategy:
+      fail-fast: false
+      matrix:
+        env: ${{ fromJson(needs.PreparePlatformIO.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Cache PlatformIO and pip
+        uses: actions/cache@v5
         with:
-          python-version: "3.14.2"
+          path: |
+            ~/.cache/pip
+            ~/.local
+            ~/.platformio/.cache
+            ~/.platformio/lib
+            ~/.platformio/packages
+            ~/.platformio/platforms
+            ~/.platformio/toolchains
+            client/.pio/libdeps
+          key: ${{ runner.os }}-platformio-${{ matrix.env }}-${{ hashFiles('client/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-platformio-${{ matrix.env }}-${{ hashFiles('client/platformio.ini') }}
+            ${{ runner.os }}-platformio-prime-${{ hashFiles('client/platformio.ini') }}
+            ${{ runner.os }}-platformio-${{ matrix.env }}-
+            ${{ runner.os }}-platformio-
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
-      - name: Intstall intelhex for esp32
+
+      - name: Install intelhex for ESP32
+        if: contains(matrix.env, 'esp32')
         run: pip install intelhex
+
       - name: Build PlatformIO Project
-        run: pio run --project-dir ./client
+        run: pio run --environment ${{ matrix.env }}
