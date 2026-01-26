@@ -47,7 +47,7 @@ jobs:
           # Prime PlatformIO by installing required platforms (no build)
           for e in $(echo "$json" | jq -r '.[]'); do
             echo "Priming PlatformIO for env: $e"
-            platform=$(pio project config --json-output | jq -r --arg env "$e" '.env[$env].platform // empty')
+            platform=$(pio project config --json-output | jq -r --arg env "env:$e" '.[] | select(.[0] == $env) | .[1].platform // empty')
             if [ -n "$platform" ]; then
               pio platform install "$platform" || true
             fi
