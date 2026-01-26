@@ -62,9 +62,11 @@ jobs:
             ~/.cache/pip
             ~/.local
             ~/.platformio/.cache
+            ~/.platformio/lib
             ~/.platformio/packages
             ~/.platformio/platforms
             ~/.platformio/toolchains
+            client/.pio/libdeps
           key: ${{ runner.os }}-platformio-prime-${{ hashFiles('client/platformio.ini') }}
           restore-keys: |
             ${{ runner.os }}-platformio-prime-
@@ -92,9 +94,11 @@ jobs:
             ~/.cache/pip
             ~/.local
             ~/.platformio/.cache
+            ~/.platformio/lib
             ~/.platformio/packages
             ~/.platformio/platforms
             ~/.platformio/toolchains
+            client/.pio/libdeps
           key: ${{ runner.os }}-platformio-${{ matrix.env }}-${{ hashFiles('client/platformio.ini') }}
           restore-keys: |
             ${{ runner.os }}-platformio-${{ matrix.env }}-${{ hashFiles('client/platformio.ini') }}
