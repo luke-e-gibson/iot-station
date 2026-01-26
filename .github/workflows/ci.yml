@@ -39,7 +39,8 @@ jobs:
       - name: Extract PlatformIO environments
         id: pioenvs
         run: |
-          pip install --upgrade platformio jq
+          apt-get install jq
+          pip install --upgrade platformio
           envs=$(pio project config --json-output | jq -r '.env | keys[]')
           json=$(printf '%s\n' "$envs" | jq -R . | jq -s .)
           echo "matrix=$json" >> $GITHUB_OUTPUT
