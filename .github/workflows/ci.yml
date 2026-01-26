@@ -39,7 +39,7 @@ jobs:
       - name: Extract PlatformIO environments
         id: pioenvs
         run: |
-          apt-get install jq
+          sudo apt-get install -y jq
           pip install --upgrade platformio
           envs=$(pio project config --json-output | jq -r '.env | keys[]')
           json=$(printf '%s\n' "$envs" | jq -R . | jq -s .)
