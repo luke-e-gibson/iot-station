@@ -4,4 +4,7 @@
 
 ## TODO
 
-- Server
+- [x] Server init
+- [x] Client init
+- [ ] Server
+- [ ] client - add sensors
