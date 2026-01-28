@@ -35,14 +35,14 @@ jobs:
               echo "Found #no-docker flag in commit message."
             else
               echo "has_no-docker_flag=false" >> $GITHUB_OUTPUT
-              echo "No #no-docker flag found in commit message."
+              echo "Did not find #no-docker flag in commit message."
             fi
             if echo "$msg" | grep -q '#no-pio'; then
               echo "has_no-pio_flag=true" >> $GITHUB_OUTPUT
               echo "Found #no-pio flag in commit message."
             else
               echo "has_no-pio_flag=false" >> $GITHUB_OUTPUT
-              echo "No #no-pio flag found in commit message."
+              echo "Did not find #no-pio flag in commit message."
             fi
           else
             echo "has_no-docker_flag=true" >> $GITHUB_OUTPUT

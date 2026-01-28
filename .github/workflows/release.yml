@@ -36,7 +36,7 @@ jobs:
               echo "Found #release flag in commit message."
             else
               echo "has_release=false" >> $GITHUB_OUTPUT
-              echo "No #release flag found in commit message."
+              echo "Did not find #release flag in commit message."
             fi
           else
             echo "has_release=false" >> $GITHUB_OUTPUT
