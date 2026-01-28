@@ -35,7 +35,7 @@ jobs:
 
   release:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_release == 'true' && !contains(github.event.head_commit.message, '#no-release') }}
+    if: ${{ needs.CheckTriggers.outputs.has_release == 'true' }}
     runs-on: ubuntu-latest
 
     steps:

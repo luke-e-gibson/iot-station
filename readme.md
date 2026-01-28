@@ -25,6 +25,7 @@
   - Suppress a release by including `#no-release` in the commit message.
 
 Examples:
+
 - To run CI Docker build: include `#docker` in your PR commit message.
 - To trigger a release and set a specific version: push to master with `#release #version@v1.2.0`.
 
