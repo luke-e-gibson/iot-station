@@ -4,8 +4,89 @@ run-name: CI Pipeline
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
+  CheckTriggers:
+    runs-on: ubuntu-latest
+    outputs:
+      has_no-docker_flag: ${{ steps.check_msg_for_flags.outputs.has_no-docker_flag }}
+      has_no-pio_flag: ${{ steps.check_msg_for_flags.outputs.has_no-pio_flag }}
+      has_server_changes: ${{ steps.check_changes.outputs.has_server_changes }}
+      has_client_changes: ${{ steps.check_changes.outputs.has_client_changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Check latest commit message for flags
+        id: check_msg_for_flags
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Read exact head commit message; if unavailable, default to NO flags (do not run jobs)
+          if git show -s --format=%B "$PR_HEAD_SHA" > /tmp/commit_msg 2>/dev/null; then
+            msg=$(cat /tmp/commit_msg)
+            if echo "$msg" | grep -q '#no-docker'; then
+              echo "has_no-docker_flag=true" >> $GITHUB_OUTPUT
+              echo "Found #no-docker flag in commit message."
+            else
+              echo "has_no-docker_flag=false" >> $GITHUB_OUTPUT
+              echo "Did not find #no-docker flag in commit message."
+            fi
+            if echo "$msg" | grep -q '#no-pio'; then
+              echo "has_no-pio_flag=true" >> $GITHUB_OUTPUT
+              echo "Found #no-pio flag in commit message."
+            else
+              echo "has_no-pio_flag=false" >> $GITHUB_OUTPUT
+              echo "Did not find #no-pio flag in commit message."
+            fi
+          else
+            echo "has_no-docker_flag=true" >> $GITHUB_OUTPUT
+            echo "Failed to read commit message; assuming #no-docker flag in message."
+            echo "has_no-pio_flag=true" >> $GITHUB_OUTPUT
+            echo "Failed to read commit message; assuming #no-pio flag in message."
+          fi
+
+      - name: Detect changed files between PR base and head
+        id: check_changes
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # ensure commits are available
+          git fetch --no-tags --prune origin || true
+          # Try to compute diff; if it fails, default to no changes (do not run jobs)
+          if git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > /tmp/changed 2>/dev/null; then
+            changed=$(cat /tmp/changed)
+            echo "$changed"
+            if echo "$changed" | grep -qE '^server/'; then
+              echo "has_server_changes=true" >> $GITHUB_OUTPUT
+              echo "Detected changes in server/ directory."
+            else
+              echo "has_server_changes=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in server/ directory."
+            fi
+            if echo "$changed" | grep -qE '^client/'; then
+              echo "has_client_changes=true" >> $GITHUB_OUTPUT
+              echo "Detected changes in client/ directory."
+            else
+              echo "has_client_changes=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in client/ directory."
+            fi
+          else
+            echo "has_server_changes=false" >> $GITHUB_OUTPUT
+            echo "Failed to compute changed files; assuming no server changes."
+            echo "has_client_changes=false" >> $GITHUB_OUTPUT
+            echo "Failed to compute changed files; assuming no client changes."
+          fi
+
   BuildDocker:
+    needs: CheckTriggers
+    if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' && needs.CheckTriggers.outputs.has_no-docker_flag == 'false' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,6 +107,8 @@ jobs:
           push: false
 
   PreparePlatformIO:
+    needs: CheckTriggers
+    if: ${{ needs.CheckTriggers.outputs.has_client_changes == 'true' && needs.CheckTriggers.outputs.has_no-pio_flag == 'false' && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
     runs-on: ubuntu-latest
     defaults:
       run:
