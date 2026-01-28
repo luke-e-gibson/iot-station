@@ -4,8 +4,48 @@ run-name: CI Pipeline
 on:
   pull_request:
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
+  CheckTriggers:
+    runs-on: ubuntu-latest
+    outputs:
+      has_docker: ${{ steps.check_docker.outputs.has_docker }}
+      has_pio: ${{ steps.check_pio.outputs.has_pio }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check latest commit message for '#docker'
+        id: check_docker
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          msg=$(git show -s --format=%B "$PR_HEAD_SHA" || git log -1 --pretty=%B)
+          if echo "$msg" | grep -q '#docker'; then
+            echo "has_docker=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_docker=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check latest commit message for '#pio'
+        id: check_pio
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          msg=$(git show -s --format=%B "$PR_HEAD_SHA" || git log -1 --pretty=%B)
+          if echo "$msg" | grep -q '#pio'; then
+            echo "has_pio=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_pio=false" >> $GITHUB_OUTPUT
+          fi
+
   BuildDocker:
+    needs: CheckTriggers
+    if: ${{ needs.CheckTriggers.outputs.has_docker == 'true' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,6 +66,8 @@ jobs:
           push: false
 
   PreparePlatformIO:
+    needs: CheckTriggers
+    if: ${{ needs.CheckTriggers.outputs.has_pio == 'true' && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
     runs-on: ubuntu-latest
     defaults:
       run:

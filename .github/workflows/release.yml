@@ -12,7 +12,30 @@ on:
       - master
 
 jobs:
+  CheckTriggers:
+    runs-on: ubuntu-latest
+    outputs:
+      has_release: ${{ steps.check_release.outputs.has_release }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check latest commit message for '#release'
+        id: check_release
+        env:
+          COMMIT_SHA: ${{ github.event.head_commit.id }}
+        run: |
+          msg=$(git show -s --format=%B "$COMMIT_SHA" || git log -1 --pretty=%B)
+          if echo "$msg" | grep -q '#release'; then
+            echo "has_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_release=false" >> $GITHUB_OUTPUT
+          fi
+
   release:
+    needs: CheckTriggers
+    if: ${{ needs.CheckTriggers.outputs.has_release == 'true' && !contains(github.event.head_commit.message, '#no-release') }}
     runs-on: ubuntu-latest
 
     steps:
