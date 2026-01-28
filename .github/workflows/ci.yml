@@ -20,22 +20,29 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Check latest commit message for flags
         id: check_msg_for_flags
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          msg=$(git show -s --format=%B "$PR_HEAD_SHA" || git log -1 --pretty=%B)
-          if echo "$msg" | grep -q '#no-docker'; then
+          # Read exact head commit message; if unavailable, default to NO flags (do not run jobs)
+          if git show -s --format=%B "$PR_HEAD_SHA" > /tmp/commit_msg 2>/dev/null; then
+            msg=$(cat /tmp/commit_msg)
+            if echo "$msg" | grep -q '#no-docker'; then
+              echo "has_server=false" >> $GITHUB_OUTPUT
+            else
+              echo "has_server=true" >> $GITHUB_OUTPUT
+            fi
+            if echo "$msg" | grep -q '#no-pio'; then
+              echo "has_client=false" >> $GITHUB_OUTPUT
+            else
+              echo "has_client=true" >> $GITHUB_OUTPUT
+            fi
+          else
             echo "has_server=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_server=true" >> $GITHUB_OUTPUT
-          fi
-          if echo "$msg" | grep -q '#no-pio'; then
             echo "has_client=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_client=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Detect changed files between PR base and head
@@ -44,18 +51,24 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          # ensure commits are available
-          git fetch --no-tags --prune --depth=0 origin || true
-          changed=$(git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA")
-          echo "$changed"
-          if echo "$changed" | grep -qE '^server/'; then
-            echo "has_server=true" >> $GITHUB_OUTPUT
+          # ensure commits are available (avoid invalid --depth=0)
+          git fetch --no-tags --prune origin || true
+          # Try to compute diff; if it fails, default to no changes (do not run jobs)
+          if git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > /tmp/changed 2>/dev/null; then
+            changed=$(cat /tmp/changed)
+            echo "$changed"
+            if echo "$changed" | grep -qE '^server/'; then
+              echo "has_server=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_server=false" >> $GITHUB_OUTPUT
+            fi
+            if echo "$changed" | grep -qE '^client/'; then
+              echo "has_client=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_client=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "has_server=false" >> $GITHUB_OUTPUT
-          fi
-          if echo "$changed" | grep -qE '^client/'; then
-            echo "has_client=true" >> $GITHUB_OUTPUT
-          else
             echo "has_client=false" >> $GITHUB_OUTPUT
           fi
 

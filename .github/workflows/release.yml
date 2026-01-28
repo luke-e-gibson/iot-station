@@ -22,14 +22,20 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.event.head_commit.id }}
       - name: Check latest commit message for '#release'
         id: check_release
         env:
           COMMIT_SHA: ${{ github.event.head_commit.id }}
         run: |
-          msg=$(git show -s --format=%B "$COMMIT_SHA" || git log -1 --pretty=%B)
-          if echo "$msg" | grep -q '#release'; then
-            echo "has_release=true" >> $GITHUB_OUTPUT
+          # Try to read the exact head commit message; if unavailable, default to NO release
+          if git show -s --format=%B "$COMMIT_SHA" > /tmp/commit_msg 2>/dev/null; then
+            msg=$(cat /tmp/commit_msg)
+            if echo "$msg" | grep -q '#release'; then
+              echo "has_release=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_release=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "has_release=false" >> $GITHUB_OUTPUT
           fi
@@ -39,12 +45,17 @@ jobs:
         env:
           COMMIT_SHA: ${{ github.event.head_commit.id }}
         run: |
-          # ensure commits are available
-          git fetch --no-tags --prune --depth=0 origin || true
-          changed=$(git diff --name-only HEAD~1 "$COMMIT_SHA")
-          echo "$changed"
-          if echo "$changed" | grep -qE '^server/'; then
-            echo "has_server=true" >> $GITHUB_OUTPUT
+          # ensure commits are available (avoid invalid --depth=0)
+          git fetch --no-tags --prune origin || true
+          # Try to compute diff; if it fails, default to no server changes
+          if git diff --name-only HEAD~1 "$COMMIT_SHA" > /tmp/changed 2>/dev/null; then
+            changed=$(cat /tmp/changed)
+            echo "$changed"
+            if echo "$changed" | grep -qE '^server/'; then
+              echo "has_server=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_server=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo "has_server=false" >> $GITHUB_OUTPUT
           fi
