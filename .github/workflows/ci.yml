@@ -86,7 +86,7 @@ jobs:
 
   BuildDocker:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_server_changes && !needs.CheckTriggers.outputs.has_no-docker_flag && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
+    if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' && needs.CheckTriggers.outputs.has_no-docker_flag == 'false' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -108,7 +108,7 @@ jobs:
 
   PreparePlatformIO:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_client_changes && !needs.CheckTriggers.outputs.has_no-pio_flag && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
+    if: ${{ needs.CheckTriggers.outputs.has_client_changes == 'true' && needs.CheckTriggers.outputs.has_no-pio_flag == 'false' && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
     runs-on: ubuntu-latest
     defaults:
       run:
