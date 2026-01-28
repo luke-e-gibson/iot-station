@@ -22,7 +22,7 @@
     - `#version@vX.Y.Z` — set exact tag.
     - `#major`, `#minor` — bump major/minor (patch resets).
     - default — bump patch.
-  - Suppress a release by including `#no-release` in the commit message.
+  - Suppress a release by not including `#release` in the commit message.
 
 Examples:
 
