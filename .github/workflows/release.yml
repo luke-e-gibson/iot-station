@@ -33,11 +33,14 @@ jobs:
             msg=$(cat /tmp/commit_msg)
             if echo "$msg" | grep -q '#release'; then
               echo "has_release=true" >> $GITHUB_OUTPUT
+              echo "Found #release flag in commit message."
             else
               echo "has_release=false" >> $GITHUB_OUTPUT
+              echo "No #release flag found in commit message."
             fi
           else
             echo "has_release=false" >> $GITHUB_OUTPUT
+            echo "Failed to read commit message; assuming no #release flag."
           fi
 
       - name: Detect changed files between PR base and head
@@ -53,11 +56,14 @@ jobs:
             echo "$changed"
             if echo "$changed" | grep -qE '^server/'; then
               echo "has_server=true" >> $GITHUB_OUTPUT
+              echo "Detected changes in server/ directory."
             else
               echo "has_server=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in server/ directory."
             fi
           else
             echo "has_server=false" >> $GITHUB_OUTPUT
+            echo "Failed to compute changed files; assuming no server changes."
           fi
 
   release:

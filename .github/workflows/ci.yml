@@ -32,17 +32,23 @@ jobs:
             msg=$(cat /tmp/commit_msg)
             if echo "$msg" | grep -q '#no-docker'; then
               echo "has_server=false" >> $GITHUB_OUTPUT
+              echo "Found #no-docker flag in commit message."
             else
               echo "has_server=true" >> $GITHUB_OUTPUT
+              echo "No #no-docker flag found in commit message."
             fi
             if echo "$msg" | grep -q '#no-pio'; then
               echo "has_client=false" >> $GITHUB_OUTPUT
+              echo "Found #no-pio flag in commit message."
             else
               echo "has_client=true" >> $GITHUB_OUTPUT
+              echo "No #no-pio flag found in commit message."
             fi
           else
             echo "has_server=false" >> $GITHUB_OUTPUT
+            echo "Failed to read commit message; assuming no #no-docker flag."
             echo "has_client=false" >> $GITHUB_OUTPUT
+            echo "Failed to read commit message; assuming no #no-pio flag."
           fi
 
       - name: Detect changed files between PR base and head
@@ -51,7 +57,7 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          # ensure commits are available (avoid invalid --depth=0)
+          # ensure commits are available
           git fetch --no-tags --prune origin || true
           # Try to compute diff; if it fails, default to no changes (do not run jobs)
           if git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > /tmp/changed 2>/dev/null; then
@@ -59,17 +65,23 @@ jobs:
             echo "$changed"
             if echo "$changed" | grep -qE '^server/'; then
               echo "has_server=true" >> $GITHUB_OUTPUT
+              echo "Detected changes in server/ directory."
             else
               echo "has_server=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in server/ directory."
             fi
             if echo "$changed" | grep -qE '^client/'; then
               echo "has_client=true" >> $GITHUB_OUTPUT
+              echo "Detected changes in client/ directory."
             else
               echo "has_client=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in client/ directory."
             fi
           else
             echo "has_server=false" >> $GITHUB_OUTPUT
+            echo "Failed to compute changed files; assuming no server changes."
             echo "has_client=false" >> $GITHUB_OUTPUT
+            echo "Failed to compute changed files; assuming no client changes."
           fi
 
   BuildDocker:
