@@ -48,7 +48,7 @@ jobs:
         env:
           COMMIT_SHA: ${{ github.event.head_commit.id }}
         run: |
-          # ensure commits are available (avoid invalid --depth=0)
+          # ensure commits are available
           git fetch --no-tags --prune origin || true
           # Try to compute diff; if it fails, default to no server changes
           if git diff --name-only HEAD~1 "$COMMIT_SHA" > /tmp/changed 2>/dev/null; then

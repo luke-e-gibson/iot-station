@@ -11,10 +11,10 @@ jobs:
   CheckTriggers:
     runs-on: ubuntu-latest
     outputs:
-      has_server_flag: ${{ steps.check_msg_for_flags.outputs.has_server }}
-      has_client_flag: ${{ steps.check_msg_for_flags.outputs.has_client }}
-      has_server_changes: ${{ steps.check_changes.outputs.has_server }}
-      has_client_changes: ${{ steps.check_changes.outputs.has_client }}
+      has_no-docker_flag: ${{ steps.check_msg_for_flags.outputs.has_no-docker_flag }}
+      has_no-pio_flag: ${{ steps.check_msg_for_flags.outputs.has_no-pio_flag }}
+      has_server_changes: ${{ steps.check_changes.outputs.has_server_changes }}
+      has_client_changes: ${{ steps.check_changes.outputs.has_client_changes }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -31,24 +31,24 @@ jobs:
           if git show -s --format=%B "$PR_HEAD_SHA" > /tmp/commit_msg 2>/dev/null; then
             msg=$(cat /tmp/commit_msg)
             if echo "$msg" | grep -q '#no-docker'; then
-              echo "has_server=false" >> $GITHUB_OUTPUT
+              echo "has_no-docker_flag=true" >> $GITHUB_OUTPUT
               echo "Found #no-docker flag in commit message."
             else
-              echo "has_server=true" >> $GITHUB_OUTPUT
+              echo "has_no-docker_flag=false" >> $GITHUB_OUTPUT
               echo "No #no-docker flag found in commit message."
             fi
             if echo "$msg" | grep -q '#no-pio'; then
-              echo "has_client=false" >> $GITHUB_OUTPUT
+              echo "has_no-pio_flag=true" >> $GITHUB_OUTPUT
               echo "Found #no-pio flag in commit message."
             else
-              echo "has_client=true" >> $GITHUB_OUTPUT
+              echo "has_no-pio_flag=false" >> $GITHUB_OUTPUT
               echo "No #no-pio flag found in commit message."
             fi
           else
-            echo "has_server=false" >> $GITHUB_OUTPUT
-            echo "Failed to read commit message; assuming no #no-docker flag."
-            echo "has_client=false" >> $GITHUB_OUTPUT
-            echo "Failed to read commit message; assuming no #no-pio flag."
+            echo "has_no-docker_flag=true" >> $GITHUB_OUTPUT
+            echo "Failed to read commit message; assuming #no-docker flag in message."
+            echo "has_no-pio_flag=true" >> $GITHUB_OUTPUT
+            echo "Failed to read commit message; assuming #no-pio flag in message."
           fi
 
       - name: Detect changed files between PR base and head
@@ -64,29 +64,29 @@ jobs:
             changed=$(cat /tmp/changed)
             echo "$changed"
             if echo "$changed" | grep -qE '^server/'; then
-              echo "has_server=true" >> $GITHUB_OUTPUT
+              echo "has_server_changes=true" >> $GITHUB_OUTPUT
               echo "Detected changes in server/ directory."
             else
-              echo "has_server=false" >> $GITHUB_OUTPUT
+              echo "has_server_changes=false" >> $GITHUB_OUTPUT
               echo "No changes detected in server/ directory."
             fi
             if echo "$changed" | grep -qE '^client/'; then
-              echo "has_client=true" >> $GITHUB_OUTPUT
+              echo "has_client_changes=true" >> $GITHUB_OUTPUT
               echo "Detected changes in client/ directory."
             else
-              echo "has_client=false" >> $GITHUB_OUTPUT
+              echo "has_client_changes=false" >> $GITHUB_OUTPUT
               echo "No changes detected in client/ directory."
             fi
           else
-            echo "has_server=false" >> $GITHUB_OUTPUT
+            echo "has_server_changes=false" >> $GITHUB_OUTPUT
             echo "Failed to compute changed files; assuming no server changes."
-            echo "has_client=false" >> $GITHUB_OUTPUT
+            echo "has_client_changes=false" >> $GITHUB_OUTPUT
             echo "Failed to compute changed files; assuming no client changes."
           fi
 
   BuildDocker:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_server_changes && needs.CheckTriggers.outputs.has_server_flag && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
+    if: ${{ needs.CheckTriggers.outputs.has_server_changes && !needs.CheckTriggers.outputs.has_no-docker_flag && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -108,7 +108,7 @@ jobs:
 
   PreparePlatformIO:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_client_changes && needs.CheckTriggers.outputs.has_client_flag && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
+    if: ${{ needs.CheckTriggers.outputs.has_client_changes && !needs.CheckTriggers.outputs.has_no-pio_flag && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
     runs-on: ubuntu-latest
     defaults:
       run:
