@@ -6,46 +6,62 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   CheckTriggers:
     runs-on: ubuntu-latest
     outputs:
-      has_docker: ${{ steps.check_docker.outputs.has_docker }}
-      has_pio: ${{ steps.check_pio.outputs.has_pio }}
+      has_server_flag: ${{ steps.check_msg_for_flags.outputs.has_server }}
+      has_client_flag: ${{ steps.check_msg_for_flags.outputs.has_client }}
+      has_server_changes: ${{ steps.check_changes.outputs.has_server }}
+      has_client_changes: ${{ steps.check_changes.outputs.has_client }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Check latest commit message for '#docker'
-        id: check_docker
+
+      - name: Check latest commit message for flags
+        id: check_msg_for_flags
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           msg=$(git show -s --format=%B "$PR_HEAD_SHA" || git log -1 --pretty=%B)
-          if echo "$msg" | grep -q '#docker'; then
-            echo "has_docker=true" >> $GITHUB_OUTPUT
+          if echo "$msg" | grep -q '#no-docker'; then
+            echo "has_server=false" >> $GITHUB_OUTPUT
           else
-            echo "has_docker=false" >> $GITHUB_OUTPUT
+            echo "has_server=true" >> $GITHUB_OUTPUT
+          fi
+          if echo "$msg" | grep -q '#no-pio'; then
+            echo "has_client=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_client=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check latest commit message for '#pio'
-        id: check_pio
+      - name: Detect changed files between PR base and head
+        id: check_changes
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          msg=$(git show -s --format=%B "$PR_HEAD_SHA" || git log -1 --pretty=%B)
-          if echo "$msg" | grep -q '#pio'; then
-            echo "has_pio=true" >> $GITHUB_OUTPUT
+          # ensure commits are available
+          git fetch --no-tags --prune --depth=0 origin || true
+          changed=$(git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA")
+          echo "$changed"
+          if echo "$changed" | grep -qE '^server/'; then
+            echo "has_server=true" >> $GITHUB_OUTPUT
           else
-            echo "has_pio=false" >> $GITHUB_OUTPUT
+            echo "has_server=false" >> $GITHUB_OUTPUT
+          fi
+          if echo "$changed" | grep -qE '^client/'; then
+            echo "has_client=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_client=false" >> $GITHUB_OUTPUT
           fi
 
   BuildDocker:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_docker == 'true' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
+    if: ${{ needs.CheckTriggers.outputs.has_server_changes && needs.CheckTriggers.outputs.has_server_flag && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -67,7 +83,7 @@ jobs:
 
   PreparePlatformIO:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_pio == 'true' && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
+    if: ${{ needs.CheckTriggers.outputs.has_client_changes && needs.CheckTriggers.outputs.has_client_flag && !contains(github.event.pull_request.title, '#no-pio') && !contains(github.event.pull_request.body, '#no-pio') }}
     runs-on: ubuntu-latest
     defaults:
       run:

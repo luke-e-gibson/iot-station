@@ -15,7 +15,8 @@ jobs:
   CheckTriggers:
     runs-on: ubuntu-latest
     outputs:
-      has_release: ${{ steps.check_release.outputs.has_release }}
+      has_release_flag: ${{ steps.check_release.outputs.has_release }}
+      has_server_changes: ${{ steps.check_changes.outputs.has_server }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -33,9 +34,24 @@ jobs:
             echo "has_release=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Detect changed files between PR base and head
+        id: check_changes
+        env:
+          COMMIT_SHA: ${{ github.event.head_commit.id }}
+        run: |
+          # ensure commits are available
+          git fetch --no-tags --prune --depth=0 origin || true
+          changed=$(git diff --name-only HEAD~1 "$COMMIT_SHA")
+          echo "$changed"
+          if echo "$changed" | grep -qE '^server/'; then
+            echo "has_server=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_server=false" >> $GITHUB_OUTPUT
+          fi
+
   release:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_release == 'true' }}
+    if: ${{ needs.CheckTriggers.outputs.has_release_flag == 'true' && needs.CheckTriggers.outputs.has_server_changes == 'true' }}
     runs-on: ubuntu-latest
 
     steps:

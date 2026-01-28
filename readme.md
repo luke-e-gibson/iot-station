@@ -11,22 +11,23 @@
 
 ## CI & Release workflow flags
 
-- CI workflow: see [.github/workflows/ci.yml](.github/workflows/ci.yml)
-  - Add `#docker` to the latest commit message in a PR to enable the `BuildDocker` job (checked via `has_docker`).
-  - Add `#pio` to the latest commit message in a PR to enable the PlatformIO build matrix (checked via `has_pio`).
-  - You can opt-out per-PR by adding `#no-docker` or `#no-pio` to the PR title or body.
+- CI workflow: see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+  - The CI first detects which files changed in the PR.
+  - Docker build (`BuildDocker`) runs only if server files changed and the commit/PR does not contain `#no-docker`.
+  - PlatformIO preparation and builds (`PreparePlatformIO` / `PlatformIoBuild`) run only if client files changed and the commit/PR does not contain `#no-pio`.
+  - Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
 
-- Release workflow: see [.github/workflows/release.yml](.github/workflows/release.yml)
-  - Pushes to `master` run the `CheckTriggers` job which looks for `#release` in the commit message (sets `has_release`).
-  - Control the version bump via commit message:
+- Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
+  - Runs on pushes to `master`.
+  - The release job proceeds only if server files changed and the commit message contains `#release` (default is disabled).
+  - Version control via commit message:
     - `#version@vX.Y.Z` — set exact tag.
     - `#major`, `#minor` — bump major/minor (patch resets).
     - default — bump patch.
-  - Suppress a release by not including `#release` in the commit message.
+  - Tags pushed are `vX.Y.Z`, short `vX.Y`, and `latest`.
 
 Examples:
 
-- To run CI Docker build: include `#docker` in your PR commit message.
-- To trigger a release and set a specific version: push to master with `#release #version@v1.2.0`.
-
-(Workflows referenced: [.github/workflows/ci.yml](.github/workflows/ci.yml), [.github/workflows/release.yml](.github/workflows/release.yml))
+- To skip Docker build in a PR include `#no-docker` in the commit message or PR title/body.
+- To skip PlatformIO tests include `#no-pio`.
+- To suppress a release on master exclude `#release`.
