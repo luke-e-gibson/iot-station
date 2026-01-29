@@ -4,10 +4,10 @@
 
 ## TODO
 
-- [x] Server init
-- [x] Client init
-- [ ] Server
-- [ ] client - add sensors
+- [x] Establish server scaffolding and basic routes
+- [x] Set up the client project structure and build config
+- [ ] Implement the server core (API, database hooks, etc.)
+- [ ] Extend the client with the planned sensor modules
 
 ## CI & Release workflow flags
 
