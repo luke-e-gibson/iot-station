@@ -10,71 +10,19 @@ on:
   push:
     branches:
       - master
+    paths:
+      - "server/**"
 
 jobs:
-  CheckTriggers:
-    runs-on: ubuntu-latest
-    outputs:
-      has_release_flag: ${{ steps.check_release.outputs.has_release }}
-      has_server_changes: ${{ steps.check_changes.outputs.has_server }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.head_commit.id }}
-      - name: Check latest commit message for '#release'
-        id: check_release
-        env:
-          COMMIT_SHA: ${{ github.event.head_commit.id }}
-        run: |
-          # Try to read the exact head commit message; if unavailable, default to NO release
-          if git show -s --format=%B "$COMMIT_SHA" > /tmp/commit_msg 2>/dev/null; then
-            msg=$(cat /tmp/commit_msg)
-            if echo "$msg" | grep -q '#release'; then
-              echo "has_release=true" >> $GITHUB_OUTPUT
-              echo "Found #release flag in commit message."
-            else
-              echo "has_release=false" >> $GITHUB_OUTPUT
-              echo "Did not find #release flag in commit message."
-            fi
-          else
-            echo "has_release=false" >> $GITHUB_OUTPUT
-            echo "Failed to read commit message; assuming no #release flag."
-          fi
-
-      - name: Detect changed files between PR base and head
-        id: check_changes
-        env:
-          COMMIT_SHA: ${{ github.event.head_commit.id }}
-        run: |
-          # ensure commits are available
-          git fetch --no-tags --prune origin || true
-          # Try to compute diff; if it fails, default to no server changes
-          if git diff --name-only HEAD~1 "$COMMIT_SHA" > /tmp/changed 2>/dev/null; then
-            changed=$(cat /tmp/changed)
-            echo "$changed"
-            if echo "$changed" | grep -qE '^server/'; then
-              echo "has_server=true" >> $GITHUB_OUTPUT
-              echo "Detected changes in server/ directory."
-            else
-              echo "has_server=false" >> $GITHUB_OUTPUT
-              echo "No changes detected in server/ directory."
-            fi
-          else
-            echo "has_server=false" >> $GITHUB_OUTPUT
-            echo "Failed to compute changed files; assuming no server changes."
-          fi
-
   release:
-    needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_release_flag == 'true' && needs.CheckTriggers.outputs.has_server_changes == 'true' }}
+    if: ${{ contains(github.event.head_commit.message, '#release') }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+          fetch-tags: true
 
       - name: Determine next version
         id: version
@@ -107,9 +55,6 @@ jobs:
             semver="$major.$minor.$patch"
           fi
 
-          # Ensure tags are fetched so we can detect collisions
-          git fetch --tags --quiet
-
           # If the computed tag already exists, increment patch until unique
           while git rev-parse --verify --quiet "refs/tags/v$semver" >/dev/null; do
             if [[ "$semver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
@@ -129,6 +74,7 @@ jobs:
           echo "new=$new" >> $GITHUB_OUTPUT
           echo "semver=$semver" >> $GITHUB_OUTPUT
           echo "short=$short" >> $GITHUB_OUTPUT
+          echo "Determined new version: ${new}"
 
       - name: Create tag
         run: |

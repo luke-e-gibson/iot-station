@@ -3,6 +3,12 @@ run-name: CI Pipeline
 
 on:
   pull_request:
+    branches:
+      - "master"
+    paths:
+      - "server/**"
+      - "client/**"
+      - ".github/workflows/**"
 
 permissions:
   contents: read
@@ -19,16 +25,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 2
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Check latest commit message for flags
         id: check_msg_for_flags
-        env:
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          # Read exact head commit message; if unavailable, default to NO flags (do not run jobs)
-          if git show -s --format=%B "$PR_HEAD_SHA" > /tmp/commit_msg 2>/dev/null; then
+          if git show -s --format=%B HEAD > /tmp/commit_msg 2>/dev/null; then
             msg=$(cat /tmp/commit_msg)
             if echo "$msg" | grep -q '#no-docker'; then
               echo "has_no-docker_flag=true" >> $GITHUB_OUTPUT
@@ -51,16 +54,10 @@ jobs:
             echo "Failed to read commit message; assuming #no-pio flag in message."
           fi
 
-      - name: Detect changed files between PR base and head
+      - name: Detect changed files in last commit only
         id: check_changes
-        env:
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          # ensure commits are available
-          git fetch --no-tags --prune origin || true
-          # Try to compute diff; if it fails, default to no changes (do not run jobs)
-          if git diff --name-only "$PR_BASE_SHA" "$PR_HEAD_SHA" > /tmp/changed 2>/dev/null; then
+          if git diff --name-only HEAD~1..HEAD > /tmp/changed 2>/dev/null; then
             changed=$(cat /tmp/changed)
             echo "$changed"
             if echo "$changed" | grep -qE '^server/'; then
@@ -191,7 +188,7 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio

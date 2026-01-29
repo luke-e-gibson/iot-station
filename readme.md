@@ -12,6 +12,7 @@
 ## CI & Release workflow flags
 
 - CI workflow: see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+  - Note: The CI workflow is triggered only for pull requests targeting the `master` branch.
   - The CI first detects which files changed in the PR.
   - Docker build (`BuildDocker`) runs only if server files changed and the commit/PR does not contain `#no-docker`.
   - PlatformIO preparation and builds (`PreparePlatformIO` / `PlatformIoBuild`) run only if client files changed and the commit/PR does not contain `#no-pio`.
