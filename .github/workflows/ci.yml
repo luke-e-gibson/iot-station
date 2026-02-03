@@ -21,6 +21,7 @@ jobs:
       has_no-pio_flag: ${{ steps.check_msg_for_flags.outputs.has_no-pio_flag }}
       has_server_changes: ${{ steps.check_changes.outputs.has_server_changes }}
       has_client_changes: ${{ steps.check_changes.outputs.has_client_changes }}
+      has_dashboard_changes: ${{ steps.check_changes.outputs.has_dashboard_changes }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -74,11 +75,20 @@ jobs:
               echo "has_client_changes=false" >> $GITHUB_OUTPUT
               echo "No changes detected in client/ directory."
             fi
+            if echo "$changed" | grep -qE '^dashboard/'; then
+              echo "has_dashboard_changes=true" >> $GITHUB_OUTPUT
+              echo "Detected changes in dashboard/ directory."
+            else
+              echo "has_dashboard_changes=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in dashboard/ directory."
+            fi
           else
             echo "has_server_changes=false" >> $GITHUB_OUTPUT
             echo "Failed to compute changed files; assuming no server changes."
             echo "has_client_changes=false" >> $GITHUB_OUTPUT
             echo "Failed to compute changed files; assuming no client changes."
+            echo "has_dashboard_changes=false" >> $GITHUB_OUTPUT
+            echo "Failed to compute changed files; assuming no dashboard changes."
           fi
 
   BuildDockerServer:
@@ -102,10 +112,10 @@ jobs:
           file: ./server/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
-          
+
   BuildDockerDashboard:
     needs: CheckTriggers
-    if: ${{ needs.CheckTriggers.outputs.has_client_changes == 'true' && needs.CheckTriggers.outputs.has_no-docker_flag == 'false' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
+    if: ${{ needs.CheckTriggers.outputs.has_dashboard_changes == 'true' && needs.CheckTriggers.outputs.has_no-docker_flag == 'false' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
