@@ -2,15 +2,8 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
-import { Thermometer, Droplets } from "lucide-react"
-
-// Types
-type WeatherData = {
-  id: number
-  temperature: number
-  humidity: number
-  timestamp: string
-}
+import { Thermometer, Droplets, TrendingUp, TrendingDown } from "lucide-react"
+import { api, type WeatherRecord, type WeatherStats } from "./services/api"
 
 const chartConfig = {
   temperature: {
@@ -24,16 +17,19 @@ const chartConfig = {
 } satisfies ChartConfig
 
 function App() {
-  const [data, setData] = useState<WeatherData[]>([])
+  const [data, setData] = useState<WeatherRecord[]>([])
+  const [stats, setStats] = useState<WeatherStats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(import.meta.env.VITE_URL_LOCATION + "/api/weather")
-        if (!res.ok) throw new Error("Failed to fetch")
-        const json = await res.json()
-        setData(json)
+        const [latestData, statsData] = await Promise.all([
+          api.getLatestWeatherRecords(50),
+          api.getWeatherStats()
+        ])
+        setData(latestData)
+        setStats(statsData)
       } catch (error) {
         console.error("Error fetching data:", error)
       } finally {
@@ -66,27 +62,71 @@ function App() {
           <p className="text-muted-foreground">Real-time temperature and humidity monitoring.</p>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Temperature</CardTitle>
+              <CardTitle className="text-sm font-medium">Current Temperature</CardTitle>
               <Thermometer className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {latest ? `${latest.temperature.toFixed(1)}°C` : "--"}
               </div>
+              {stats && stats.temperature.avg !== null && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Avg: {stats.temperature.avg.toFixed(1)}°C
+                </p>
+              )}
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Humidity</CardTitle>
+              <CardTitle className="text-sm font-medium">Current Humidity</CardTitle>
               <Droplets className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {latest ? `${latest.humidity.toFixed(1)}%` : "--"}
               </div>
+              {stats && stats.humidity.avg !== null && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Avg: {stats.humidity.avg.toFixed(1)}%
+                </p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Temperature Range</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {stats && stats.temperature.max !== null ? `${stats.temperature.max.toFixed(1)}°C` : "--"}
+              </div>
+              {stats && stats.temperature.min !== null && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <TrendingDown className="h-3 w-3" />
+                  Min: {stats.temperature.min.toFixed(1)}°C
+                </p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Humidity Range</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {stats && stats.humidity.max !== null ? `${stats.humidity.max.toFixed(1)}%` : "--"}
+              </div>
+              {stats && stats.humidity.min !== null && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <TrendingDown className="h-3 w-3" />
+                  Min: {stats.humidity.min.toFixed(1)}%
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

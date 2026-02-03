@@ -17,4 +17,41 @@ router.get('/weather', (req: express.Request, res: express.Response) => {
     res.json(data)
 })
 
+router.get('/weather/latest', (req: express.Request, res: express.Response) => {
+    const count = parseInt(req.query.count as string) || 1
+    const data = database.weather.getLatestNWeatherRecords(count)
+    res.json(data)
+})
+
+router.get('/weather/stats', (req: express.Request, res: express.Response) => {
+    const records = database.weather.getWeatherRecords()
+    
+    if (records.length === 0) {
+        return res.json({
+            count: 0,
+            temperature: { min: null, max: null, avg: null },
+            humidity: { min: null, max: null, avg: null }
+        })
+    }
+
+    const temps = records.map(r => r.temperature)
+    const humidities = records.map(r => r.humidity)
+    
+    const stats = {
+        count: records.length,
+        temperature: {
+            min: Math.min(...temps),
+            max: Math.max(...temps),
+            avg: temps.reduce((a, b) => a + b, 0) / temps.length
+        },
+        humidity: {
+            min: Math.min(...humidities),
+            max: Math.max(...humidities),
+            avg: humidities.reduce((a, b) => a + b, 0) / humidities.length
+        }
+    }
+    
+    res.json(stats)
+})
+
 export default router

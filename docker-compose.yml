@@ -1,5 +1,22 @@
 services:
-  server:
-    build: ./server
+  nginx:
+    image: nginx:alpine
     ports:
       - "3000:3000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - server
+      - dashboard
+  
+  server:
+    build: ./server
+    expose:
+      - "3000"
+  
+  dashboard:
+    build: ./dashboard
+    environment:
+      - VITE_URL_LOCATION=http://localhost:3000
+    expose:
+      - "5173"

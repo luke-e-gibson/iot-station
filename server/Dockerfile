@@ -1,8 +1,17 @@
 FROM node:25-alpine
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+
+# Install pnpm via npm
+RUN npm install -g pnpm@10.28.2
+
+# Copy dependency files
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
 COPY . .
 
 EXPOSE 3000
-CMD ["node", "server.ts"]
+CMD ["pnpm", "start"]
