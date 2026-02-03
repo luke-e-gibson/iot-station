@@ -1,0 +1,18 @@
+type: http_request
+model: http_request
+id: rq_kXdJVDNc92
+createdAt: 2026-02-03T06:09:49.252609300
+updatedAt: 2026-02-03T06:18:23.749000300
+workspaceId: wk_jMKNXedWko
+folderId: null
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: Get Weather
+sortPriority: -1770098989251.0
+url: http://${[ HOST ]}:${[ PORT ]}/api/weather
+urlParameters: []

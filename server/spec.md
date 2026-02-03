@@ -6,7 +6,7 @@
 
 ## Endpoints
 
-### POST `/weather`
+### POST `/api/weather`
 
 Create a new weather record.
 
@@ -24,7 +24,7 @@ Create a new weather record.
   - `400 Bad Request` - Invalid or missing parameters.
   - `500 Internal Server Error` - Database or server error.
 
-### GET `/weather`
+### GET `/api/weather`
 
 Retrieve weather records ordered by `timestamp` descending.
 
