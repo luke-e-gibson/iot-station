@@ -1,0 +1,27 @@
+type: http_request
+model: http_request
+id: rq_vuygBHaDas
+createdAt: 2026-02-03T06:12:10.708607600
+updatedAt: 2026-02-03T06:18:28.988814800
+workspaceId: wk_jMKNXedWko
+folderId: null
+authentication: {}
+authenticationType: null
+body:
+  text: |-
+    {
+      "temperature": 21.56,
+      "humidity": "30"
+    }
+bodyType: application/json
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: bDqRdudKzk
+method: POST
+name: Send Weather
+sortPriority: -1770098989251.0
+url: http://${[ HOST ]}:${[ PORT ]}/api/weather
+urlParameters: []

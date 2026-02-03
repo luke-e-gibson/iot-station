@@ -1,0 +1,14 @@
+type: workspace
+model: workspace
+id: wk_jMKNXedWko
+createdAt: 2026-02-03T06:09:40.781011700
+updatedAt: 2026-02-03T06:09:40.781012900
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: iot-station-api
+encryptionKeyChallenge: null
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0

@@ -1,0 +1,22 @@
+type: environment
+model: environment
+id: ev_n5Xvdt6bip
+workspaceId: wk_jMKNXedWko
+createdAt: 2026-02-03T06:09:40.814067500
+updatedAt: 2026-02-03T06:10:23.680108400
+name: Global Variables
+public: true
+base: true
+parentModel: workspace
+parentId: null
+variables:
+- enabled: true
+  name: PORT
+  value: '3000'
+  id: T4pIDm2WJ8
+- enabled: true
+  name: HOST
+  value: localhost
+  id: mnDd05cyFj
+color: null
+sortPriority: 0.0

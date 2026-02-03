@@ -24,3 +24,6 @@ build/
 
 # Turbo
 .turbo/
+
+#Database files
+*.db
