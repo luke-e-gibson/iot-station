@@ -8,6 +8,7 @@ on:
     paths:
       - "server/**"
       - "client/**"
+      - "dashboard/**"
 
 permissions:
   contents: read
@@ -80,7 +81,7 @@ jobs:
             echo "Failed to compute changed files; assuming no client changes."
           fi
 
-  BuildDocker:
+  BuildDockerServer:
     needs: CheckTriggers
     if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' && needs.CheckTriggers.outputs.has_no-docker_flag == 'false' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
     runs-on: ubuntu-latest
@@ -99,6 +100,28 @@ jobs:
         with:
           context: ./server
           file: ./server/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          
+  BuildDockerDashboard:
+    needs: CheckTriggers
+    if: ${{ needs.CheckTriggers.outputs.has_client_changes == 'true' && needs.CheckTriggers.outputs.has_no-docker_flag == 'false' && !contains(github.event.pull_request.title, '#no-docker') && !contains(github.event.pull_request.body, '#no-docker') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up qemu
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./dashboard
+          file: ./dashboard/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
 
