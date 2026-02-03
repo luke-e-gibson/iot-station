@@ -33,7 +33,7 @@ Examples:
 - To skip PlatformIO tests include `#no-pio`.
 - To suppress a release on master exclude `#release`.
 
-## 2. Conventions
+## Conventions
 
 This organisation follows a set of development conventions to keep the codebase consistent, predictable, and easy to maintain.
 
