@@ -19,13 +19,12 @@
   - Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
 
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
-  - Runs on pushes to `master`.
-  - The release job proceeds only if server files changed and the commit message contains `#release` (default is disabled).
-  - Version control via commit message:
-    - `#version@vX.Y.Z` — set exact tag.
-    - `#major`, `#minor` — bump major/minor (patch resets).
-    - default — bump patch.
-  - Tags pushed are `vX.Y.Z`, short `vX.Y`, and `latest`.
+  - Runs on pushes to `master` that include `#release` in the commit message.
+  - The workflow determines each service’s baseline by looking up the latest `<service>@vX.Y.Z` tag (`git tag --list "${service}@v*" --sort=-v:refname`) and increments patch unless a directive overrides it.
+  - Use `#server@vX.Y.Z` or `#dashboard@vX.Y.Z` to pin the exact version you want for that component.
+  - Use `#server-major` / `#dashboard-minor` / `#dashboard-patch` etc. to bump the indicated segment (patch resets to zero unless you bump it explicitly).
+  - Without any service-specific directive, the targeted service receives a patch bump from its last tag.
+  - Git tags follow the `<service>@vX.Y.Z` convention, and the Docker publishes both the patch-free short tag (`vX.Y`) and full semver per component together with `latest`.
 
 Examples:
 
