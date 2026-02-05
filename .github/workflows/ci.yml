@@ -1,6 +1,10 @@
 name: Continuous Integration
 run-name: CI Pipeline
 
+defaults:
+  run:
+    shell: bash
+
 on:
   pull_request:
     branches:
@@ -33,15 +37,14 @@ jobs:
         id: check_msg_for_flags
         run: |
           if git show -s --format=%B HEAD > /tmp/commit_msg 2>/dev/null; then
-            msg=$(cat /tmp/commit_msg)
-            if echo "$msg" | grep -q '#no-docker'; then
+            if grep -qi '#no-docker' /tmp/commit_msg; then
               echo "has_no-docker_flag=true" >> $GITHUB_OUTPUT
               echo "Found #no-docker flag in commit message."
             else
               echo "has_no-docker_flag=false" >> $GITHUB_OUTPUT
               echo "Did not find #no-docker flag in commit message."
             fi
-            if echo "$msg" | grep -q '#no-pio'; then
+            if grep -qi '#no-pio' /tmp/commit_msg; then
               echo "has_no-pio_flag=true" >> $GITHUB_OUTPUT
               echo "Found #no-pio flag in commit message."
             else
@@ -59,36 +62,34 @@ jobs:
         id: check_changes
         run: |
           if git diff --name-only HEAD~1..HEAD > /tmp/changed 2>/dev/null; then
-            changed=$(cat /tmp/changed)
-            echo "$changed"
-            if echo "$changed" | grep -qE '^server/'; then
+            if grep -qiE '^server/' /tmp/changed; then
               echo "has_server_changes=true" >> $GITHUB_OUTPUT
               echo "Detected changes in server/ directory."
             else
               echo "has_server_changes=false" >> $GITHUB_OUTPUT
               echo "No changes detected in server/ directory."
             fi
-            if echo "$changed" | grep -qE '^client/'; then
-              echo "has_client_changes=true" >> $GITHUB_OUTPUT
-              echo "Detected changes in client/ directory."
-            else
-              echo "has_client_changes=false" >> $GITHUB_OUTPUT
-              echo "No changes detected in client/ directory."
-            fi
-            if echo "$changed" | grep -qE '^dashboard/'; then
+            if grep -qiE '^dashboard/' /tmp/changed; then
               echo "has_dashboard_changes=true" >> $GITHUB_OUTPUT
               echo "Detected changes in dashboard/ directory."
             else
               echo "has_dashboard_changes=false" >> $GITHUB_OUTPUT
               echo "No changes detected in dashboard/ directory."
             fi
+            if grep -qiE '^client/' /tmp/changed; then
+              echo "has_client_changes=true" >> $GITHUB_OUTPUT
+              echo "Detected changes in client/ directory."
+            else
+              echo "has_client_changes=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in client/ directory."
+            fi
           else
             echo "has_server_changes=false" >> $GITHUB_OUTPUT
             echo "Failed to compute changed files; assuming no server changes."
-            echo "has_client_changes=false" >> $GITHUB_OUTPUT
-            echo "Failed to compute changed files; assuming no client changes."
             echo "has_dashboard_changes=false" >> $GITHUB_OUTPUT
             echo "Failed to compute changed files; assuming no dashboard changes."
+            echo "has_client_changes=false" >> $GITHUB_OUTPUT
+            echo "Failed to compute changed files; assuming no client changes."
           fi
 
   BuildDockerServer:
