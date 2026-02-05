@@ -69,21 +69,35 @@ jobs:
           fetch-tags: true
 
       - name: Determine service versions
-        if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' || needs.CheckTriggers.outputs.has_dashboard_changes == 'true' }}
         id: versioning
         run: |
           set -euo pipefail
           msg="${{ github.event.head_commit.message }}"
+          has_server="${{ needs.CheckTriggers.outputs.has_server_changes }}"
+          has_dashboard="${{ needs.CheckTriggers.outputs.has_dashboard_changes }}"
           components=()
-          if [[ "${{ needs.CheckTriggers.outputs.has_server_changes }}" == "true" ]]; then
-            components+=(server)
+
+          add_component() {
+            comp="$1"
+            dir="./${comp}"
+            dockerfile="${dir}/Dockerfile"
+
+            if [[ -d "$dir" && -f "$dockerfile" ]]; then
+              components+=("$comp")
+            else
+              echo "Component ${comp} flagged for release but missing ${dir} or ${dockerfile}; skipping."
+            fi
+          }
+
+          if [[ "$has_server" == "true" ]]; then
+            add_component server
           fi
-          if [[ "${{ needs.CheckTriggers.outputs.has_dashboard_changes }}" == "true" ]]; then
-            components+=(dashboard)
+          if [[ "$has_dashboard" == "true" ]]; then
+            add_component dashboard
           fi
 
           if [ ${#components[@]} -eq 0 ]; then
-            echo "No component changes detected; skipping versioning."
+            echo "No valid components remain after validation; skipping versioning."
             exit 0
           fi
 
@@ -136,16 +150,25 @@ jobs:
             echo "Determined ${comp} version: ${new_tag}"
           done
 
-      - name: Create component tags
-        if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' || needs.CheckTriggers.outputs.has_dashboard_changes == 'true' }}
+      - name: Configure git identity for tagging
         run: |
-          if [[ "${{ needs.CheckTriggers.outputs.has_server_changes }}" == "true" ]]; then
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create component tags
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ steps.versioning.outputs.server_new }}" ]]; then
             git tag "${{ steps.versioning.outputs.server_new }}"
             git push origin "${{ steps.versioning.outputs.server_new }}"
+          else
+            echo "Server tagging skipped because versioning emitted no output for that component."
           fi
-          if [[ "${{ needs.CheckTriggers.outputs.has_dashboard_changes }}" == "true" ]]; then
+          if [[ -n "${{ steps.versioning.outputs.dashboard_new }}" ]]; then
             git tag "${{ steps.versioning.outputs.dashboard_new }}"
             git push origin "${{ steps.versioning.outputs.dashboard_new }}"
+          else
+            echo "Dashboard tagging skipped because versioning emitted no output for that component."
           fi
 
       - uses: docker/setup-qemu-action@v3
