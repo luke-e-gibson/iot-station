@@ -59,7 +59,7 @@ jobs:
 
   release:
     needs: CheckTriggers
-    if: ${{ contains(github.event.head_commit.message, '#release') }}
+    if: ${{ (needs.CheckTriggers.outputs.has_server_changes == 'true' || needs.CheckTriggers.outputs.has_dashboard_changes == 'true') }}
     runs-on: ubuntu-latest
 
     steps:
@@ -69,11 +69,23 @@ jobs:
           fetch-tags: true
 
       - name: Determine service versions
+        if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' || needs.CheckTriggers.outputs.has_dashboard_changes == 'true' }}
         id: versioning
         run: |
           set -euo pipefail
           msg="${{ github.event.head_commit.message }}"
-          components=(server dashboard)
+          components=()
+          if [[ "${{ needs.CheckTriggers.outputs.has_server_changes }}" == "true" ]]; then
+            components+=(server)
+          fi
+          if [[ "${{ needs.CheckTriggers.outputs.has_dashboard_changes }}" == "true" ]]; then
+            components+=(dashboard)
+          fi
+
+          if [ ${#components[@]} -eq 0 ]; then
+            echo "No component changes detected; skipping versioning."
+            exit 0
+          fi
 
           for comp in "${components[@]}"; do
             semver=""
@@ -125,10 +137,16 @@ jobs:
           done
 
       - name: Create component tags
+        if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' || needs.CheckTriggers.outputs.has_dashboard_changes == 'true' }}
         run: |
-          git tag "${{ steps.versioning.outputs.server_new }}"
-          git tag "${{ steps.versioning.outputs.dashboard_new }}"
-          git push origin "${{ steps.versioning.outputs.server_new }}" "${{ steps.versioning.outputs.dashboard_new }}"
+          if [[ "${{ needs.CheckTriggers.outputs.has_server_changes }}" == "true" ]]; then
+            git tag "${{ steps.versioning.outputs.server_new }}"
+            git push origin "${{ steps.versioning.outputs.server_new }}"
+          fi
+          if [[ "${{ needs.CheckTriggers.outputs.has_dashboard_changes }}" == "true" ]]; then
+            git tag "${{ steps.versioning.outputs.dashboard_new }}"
+            git push origin "${{ steps.versioning.outputs.dashboard_new }}"
+          fi
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
@@ -140,6 +158,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push multi-arch image
+        if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' }}
         uses: docker/build-push-action@v6
         with:
           context: ./server
@@ -152,6 +171,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/server:${{ steps.versioning.outputs.server_semver }}
 
       - name: Build and push dashboard image
+        if: ${{ needs.CheckTriggers.outputs.has_dashboard_changes == 'true' }}
         uses: docker/build-push-action@v6
         with:
           context: ./dashboard
