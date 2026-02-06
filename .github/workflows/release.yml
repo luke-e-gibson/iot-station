@@ -69,7 +69,7 @@ jobs:
           fi
 
           release_components_output="${release_components[*]}"
-          printf -- "release_components=%s\n" "$release_components_output" >> $GITHUB_OUTPUT
+          printf -- "release_components=%s\n" "$release_components_output" >> "$GITHUB_OUTPUT"
 
   Versioning:
     needs: CheckTriggers
@@ -167,13 +167,13 @@ jobs:
             has_releasable=true
           done
 
-          echo "server_new=${server_new}" >> $GITHUB_OUTPUT
-          echo "server_semver=${server_semver}" >> $GITHUB_OUTPUT
-          echo "server_short=${server_short}" >> $GITHUB_OUTPUT
-          echo "dashboard_new=${dashboard_new}" >> $GITHUB_OUTPUT
-          echo "dashboard_semver=${dashboard_semver}" >> $GITHUB_OUTPUT
-          echo "dashboard_short=${dashboard_short}" >> $GITHUB_OUTPUT
-          echo "has_releasable=${has_releasable}" >> $GITHUB_OUTPUT
+          echo "server_new=${server_new}" >> "$GITHUB_OUTPUT"
+          echo "server_semver=${server_semver}" >> "$GITHUB_OUTPUT"
+          echo "server_short=${server_short}" >> "$GITHUB_OUTPUT"
+          echo "dashboard_new=${dashboard_new}" >> "$GITHUB_OUTPUT"
+          echo "dashboard_semver=${dashboard_semver}" >> "$GITHUB_OUTPUT"
+          echo "dashboard_short=${dashboard_short}" >> "$GITHUB_OUTPUT"
+          echo "has_releasable=${has_releasable}" >> "$GITHUB_OUTPUT"
 
   release:
     needs: Versioning
