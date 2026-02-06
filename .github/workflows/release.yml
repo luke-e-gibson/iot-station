@@ -99,8 +99,14 @@ jobs:
           fi
 
           if [[ -n "$range" ]]; then
-            msg=$(git log --format=%B "$range")
+            if ! msg=$(git log --format=%B "$range"); then
+              msg=""
+            fi
           else
+            msg=""
+          fi
+
+          if [[ -z "$msg" ]]; then
             msg=$(git log -1 --format=%B "${{ github.sha }}")
           fi
           components_raw="${{ needs.CheckTriggers.outputs.release_components }}"
@@ -129,7 +135,7 @@ jobs:
             if [[ "$msg" =~ \#${comp}@v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
               semver="${BASH_REMATCH[1]}"
             else
-              latest_tag=$(git tag --list "${comp}@v*" --sort=-v:refname | head -n1)
+              latest_tag=$(git tag --list "${comp}@v*" --sort=-v:refname | head -n1 || true)
               latest="${latest_tag#${comp}@v}"
               if [[ "$latest" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
                 major="${BASH_REMATCH[1]}"
