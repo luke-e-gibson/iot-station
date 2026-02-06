@@ -33,12 +33,12 @@ Retrieve weather records ordered by `timestamp` descending.
 
     ```json
     [
-        {
-            "id": number,
-            "temperature": number,
-            "humidity": number,
-            "timestamp": string
-        }
+      {
+        "id": number,
+        "temperature": number,
+        "humidity": number,
+        "timestamp": string
+      }
     ]
     ```
 
