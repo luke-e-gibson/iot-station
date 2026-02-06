@@ -50,4 +50,4 @@ Retrieve weather records ordered by `timestamp` descending.
   - `id` (integer, primary key, auto-increment)
   - `temperature` (number, not null)
   - `humidity` (number, not null)
-  - `timestamp` (datetime, default current timestamp)
+  - `timestamp` (datetime, current timestamp)
