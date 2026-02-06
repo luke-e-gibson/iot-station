@@ -1,5 +1,12 @@
 {
     "database": {
-        "location": ":memory:"
+        "location": ":memory:",
+        "type": "sqlite"
+    },
+    "logger": {
+        "output": [ "console", "file" ],
+        "file": {
+            "path": "logs/server.log"
+        }
     }
 }
