@@ -34,7 +34,7 @@ jobs:
       - name: Detect changed files in push range
         id: check_changes
         run: |
-          set -euo pipefail
+          set -e
           range="${{ github.event.before }}..${{ github.sha }}"
           changed_files=/tmp/changed
 
@@ -92,7 +92,7 @@ jobs:
       - name: Determine service versions
         id: versioning
         run: |
-          set -euo pipefail
+          set -e pipefail
           msg="${{ github.event.head_commit.message }}"
           components_raw="${{ needs.CheckTriggers.outputs.release_components }}"
           components=()
@@ -193,7 +193,7 @@ jobs:
 
       - name: Create component tags
         run: |
-          set -euo pipefail
+          set -e
           if [[ -n "${{ needs.Versioning.outputs.server_new }}" ]]; then
             git tag "${{ needs.Versioning.outputs.server_new }}"
             git push origin "${{ needs.Versioning.outputs.server_new }}"
