@@ -66,4 +66,15 @@ CREATE TABLE IF NOT EXISTS weather_data (
         return statement.all(n) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; }>
     }
 
+    _debug_create_test_data() {
+        this._logger.log("Creating test data...");
+        const insert = this.database.prepare('INSERT INTO weather_data (temperature, humidity) VALUES (?, ?)')
+        for(let i = 0; i < 10; i++) {
+            const temp = 20 + Math.random() * 10;
+            const hum = 40 + Math.random() * 20;
+            insert.run(temp, hum);
+        }
+        
+    }
+
 }
