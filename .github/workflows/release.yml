@@ -145,11 +145,11 @@ jobs:
                 major=0; minor=0; patch=0
               fi
               if [[ "$msg" =~ \#${comp}-major ]]; then
-                ((major++)); minor=0; patch=0
+                major=$((major + 1)); minor=0; patch=0
               elif [[ "$msg" =~ \#${comp}-minor ]]; then
-                ((minor++)); patch=0
+                minor=$((minor + 1)); patch=0
               else
-                ((patch++))
+                patch=$((patch + 1))
               fi
               semver="${major}.${minor}.${patch}"
             fi
@@ -163,7 +163,7 @@ jobs:
                 else
                   major=0; minor=0; patch=0
                 fi
-                ((patch++))
+                patch=$((patch + 1))
                 semver="${major}.${minor}.${patch}"
               else
                 break
