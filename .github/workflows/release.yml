@@ -96,11 +96,6 @@ jobs:
             add_component dashboard
           fi
 
-          if [ ${#components[@]} -eq 0 ]; then
-            echo "No valid components remain after validation; skipping versioning."
-            exit 0
-          fi
-
           for comp in "${components[@]}"; do
             semver=""
 
