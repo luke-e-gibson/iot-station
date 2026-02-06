@@ -93,7 +93,16 @@ jobs:
         id: versioning
         run: |
           set -e
-          msg="${{ github.event.head_commit.message }}"
+          range="${{ github.event.before }}..${{ github.sha }}"
+          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+            range=""
+          fi
+
+          if [[ -n "$range" ]]; then
+            msg=$(git log --format=%B "$range")
+          else
+            msg=$(git log -1 --format=%B "${{ github.sha }}")
+          fi
           components_raw="${{ needs.CheckTriggers.outputs.release_components }}"
           components=()
 
