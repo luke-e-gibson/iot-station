@@ -19,7 +19,7 @@
   - Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
 
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
-  - Runs on pushes to `master` that include `#release` in the commit message and touch `server/**` or `dashboard/**` paths (other folders are ignored by this workflow); because the change detector only inspects the commits between `github.event.before` and `github.sha` (which resolves to `HEAD~1..HEAD` for single-commit pushes), changes introduced earlier in a multi-commit push are ignored when deciding which files triggered the run.
+  - Runs on pushes to `master` that include `#release` in the commit message and touch `server/**` or `dashboard/**` paths (other folders are ignored by this workflow); the change detector inspects the commits in the push event range `github.event.before..github.sha`, i.e. all commits that are part of that push from the previous remote state to the new `HEAD`.
   - Only services whose directories changed in that push range and still contain the expected `Dockerfile` receive new versions; untouched services keep their previous tags.
   - For the services flagged by that same push range, the workflow determines each released baseline by running `git tag --list "${service}@v*"`, picking the latest tag within that range, and incrementing the patch segment for the targeted component.
   - Use `#server@vX.Y.Z` or `#dashboard@vX.Y.Z` to pin the exact version you want for that component; otherwise the patch segment increases automatically without additional directives.
