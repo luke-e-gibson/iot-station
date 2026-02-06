@@ -49,16 +49,19 @@ CREATE TABLE IF NOT EXISTS weather_data (
     }
 
     getWeatherRecords(): Array<{ id: number; temperature: number; humidity: number; timestamp: string; }> {
+        this._logger.log("Fetching all weather records...");
         const statement = this.database.prepare('SELECT * FROM weather_data ORDER BY timestamp DESC')
         return statement.all() as Array<{ id: number; temperature: number; humidity: number; timestamp: string; }>
     }
     
     getWeatherRecordsInTimeRange(start: string, end: string): Array<{ id: number; temperature: number; humidity: number; timestamp: string; }> {
+        this._logger.log(`Fetching weather records between ${start} and ${end}...`);
         const statement = this.database.prepare('SELECT * FROM weather_data WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp DESC')
         return statement.all(start, end) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; }>
     }
     
     getLatestNWeatherRecords(n: number): Array<{ id: number; temperature: number; humidity: number; timestamp: string; }> {
+        this._logger.log(`Fetching latest ${n} weather records...`);
         const statement = this.database.prepare('SELECT * FROM weather_data ORDER BY timestamp DESC LIMIT ?')
         return statement.all(n) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; }>
     }
