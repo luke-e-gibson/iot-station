@@ -9,8 +9,8 @@ router.get('/', (req: Request, res: Response) => {
 
 router.get('/create-weather-records', (req: Request, res: Response) => {
     const instance = Instance.getInstance();
-    const weatherRecords = instance.getDatabase().weather._debug_create_test_data();
-    res.json(weatherRecords);
+    instance.getDatabase().weather._debug_create_test_data();
+    res.json({ message: 'Test weather records created successfully' });
 });
 
 export default router
