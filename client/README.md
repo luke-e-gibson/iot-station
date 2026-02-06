@@ -8,7 +8,7 @@
 - D1 Mini
 - ESP32 Dev
 
-**Tested with:**
+**Field tested with:**
 
 - Nano RP2040 Connect
 - ESP32 Dev

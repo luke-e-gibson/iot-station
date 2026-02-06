@@ -23,45 +23,66 @@ jobs:
     if: ${{ contains(github.event.head_commit.message, '#release') }}
     runs-on: ubuntu-latest
     outputs:
-      has_server_changes: ${{ steps.check_changes.outputs.has_server_changes }}
-      has_dashboard_changes: ${{ steps.check_changes.outputs.has_dashboard_changes }}
+      release_components: ${{ steps.check_changes.outputs.release_components }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           ref: ${{ github.sha }}
 
-      - name: Detect changed files in last commit only
+      - name: Detect changed files in push range
         id: check_changes
         run: |
-          if git diff --name-only HEAD~1..HEAD > /tmp/changed 2>/dev/null; then
-            if grep -qiE '^server/' /tmp/changed; then
-              echo "has_server_changes=true" >> $GITHUB_OUTPUT
-              echo "Detected changes in server/ directory."
-            else
-              echo "has_server_changes=false" >> $GITHUB_OUTPUT
-              echo "No changes detected in server/ directory."
-            fi
-            if grep -qiE '^dashboard/' /tmp/changed; then
-              echo "has_dashboard_changes=true" >> $GITHUB_OUTPUT
-              echo "Detected changes in dashboard/ directory."
-            else
-              echo "has_dashboard_changes=false" >> $GITHUB_OUTPUT
-              echo "No changes detected in dashboard/ directory."
-            fi
-          else
-            echo "has_server_changes=false" >> $GITHUB_OUTPUT
-            echo "Failed to compute changed files; assuming no server changes."
-            echo "has_dashboard_changes=false" >> $GITHUB_OUTPUT
-            echo "Failed to compute changed files; assuming no dashboard changes."
+          set -euo pipefail
+          range="${{ github.event.before }}..${{ github.sha }}"
+          changed_files=/tmp/changed
+
+          if ! git diff --name-only "$range" > "$changed_files" 2>/dev/null; then
+            >&2 echo "ERROR: Failed to compute changed files for range $range; git diff command failed."
+            exit 1
           fi
 
-  release:
-    needs: CheckTriggers
-    if: ${{ contains(github.event.head_commit.message, '#release') }}
-    runs-on: ubuntu-latest
+          echo "Inspecting files changed in range: $range"
+          release_components=()
 
+          if grep -qiE '^server/' "$changed_files"; then
+            echo "Detected changes in server/ directory."
+            if [[ -d ./server && -f ./server/Dockerfile ]]; then
+              release_components+=(server)
+            else
+              echo "Server changes detected but server/Dockerfile missing; skipping release for server."
+            fi
+          else
+            echo "No changes detected in server/ directory."
+          fi
+
+          if grep -qiE '^dashboard/' "$changed_files"; then
+            echo "Detected changes in dashboard/ directory."
+            if [[ -d ./dashboard && -f ./dashboard/Dockerfile ]]; then
+              release_components+=(dashboard)
+            else
+              echo "Dashboard changes detected but dashboard/Dockerfile missing; skipping release for dashboard."
+            fi
+          else
+            echo "No changes detected in dashboard/ directory."
+          fi
+
+          release_components_output="${release_components[*]}"
+          printf -- "release_components=%s\n" "$release_components_output" >> $GITHUB_OUTPUT
+
+  Versioning:
+    needs: CheckTriggers
+    if: ${{ needs.CheckTriggers.outputs.release_components != '' }}
+    runs-on: ubuntu-latest
+    outputs:
+      server_new: ${{ steps.versioning.outputs.server_new }}
+      server_semver: ${{ steps.versioning.outputs.server_semver }}
+      server_short: ${{ steps.versioning.outputs.server_short }}
+      dashboard_new: ${{ steps.versioning.outputs.dashboard_new }}
+      dashboard_semver: ${{ steps.versioning.outputs.dashboard_semver }}
+      dashboard_short: ${{ steps.versioning.outputs.dashboard_short }}
+      has_releasable: ${{ steps.versioning.outputs.has_releasable }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -73,17 +94,33 @@ jobs:
         run: |
           set -euo pipefail
           msg="${{ github.event.head_commit.message }}"
-          components=(server dashboard)
+          components_raw="${{ needs.CheckTriggers.outputs.release_components }}"
+          components=()
+
+          if [[ -n "${components_raw}" ]]; then
+            read -r -a components <<< "${components_raw}"
+          fi
+
+          server_new=""
+          server_semver=""
+          server_short=""
+          dashboard_new=""
+          dashboard_semver=""
+          dashboard_short=""
+          has_releasable=false
+
+          if [[ ${#components[@]} -eq 0 ]]; then
+            echo "No valid components detected for release; exiting."
+            exit 0
+          fi
 
           for comp in "${components[@]}"; do
             semver=""
-
             if [[ "$msg" =~ \#${comp}@v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
               semver="${BASH_REMATCH[1]}"
             else
               latest_tag=$(git tag --list "${comp}@v*" --sort=-v:refname | head -n1)
               latest="${latest_tag#${comp}@v}"
-
               if [[ "$latest" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
                 major="${BASH_REMATCH[1]}"
                 minor="${BASH_REMATCH[2]}"
@@ -91,7 +128,6 @@ jobs:
               else
                 major=0; minor=0; patch=0
               fi
-
               if [[ "$msg" =~ \#${comp}-major ]]; then
                 ((major++)); minor=0; patch=0
               elif [[ "$msg" =~ \#${comp}-minor ]]; then
@@ -99,11 +135,10 @@ jobs:
               else
                 ((patch++))
               fi
-
-              semver="$major.$minor.$patch"
+              semver="${major}.${minor}.${patch}"
             fi
 
-            while git rev-parse --verify --quiet "refs/tags/${comp}@v$semver" >/dev/null; do
+            while git rev-parse --verify --quiet "refs/tags/${comp}@v${semver}" >/dev/null; do
               if [[ "$semver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
                 major="${BASH_REMATCH[1]}"
                 minor="${BASH_REMATCH[2]}"
@@ -112,34 +147,76 @@ jobs:
                 major=0; minor=0; patch=0
               fi
               ((patch++))
-              semver="$major.$minor.$patch"
+              semver="${major}.${minor}.${patch}"
             done
 
-            new_tag="${comp}@v$semver"
+            new_tag="${comp}@v${semver}"
             short="v${semver%.*}"
 
-            echo "${comp}_new=${new_tag}" >> $GITHUB_OUTPUT
-            echo "${comp}_semver=${semver}" >> $GITHUB_OUTPUT
-            echo "${comp}_short=${short}" >> $GITHUB_OUTPUT
+            if [[ "$comp" == "server" ]]; then
+              server_new="${new_tag}"
+              server_semver="${semver}"
+              server_short="${short}"
+            elif [[ "$comp" == "dashboard" ]]; then
+              dashboard_new="${new_tag}"
+              dashboard_semver="${semver}"
+              dashboard_short="${short}"
+            fi
+
             echo "Determined ${comp} version: ${new_tag}"
+            has_releasable=true
           done
+
+          echo "server_new=${server_new}" >> $GITHUB_OUTPUT
+          echo "server_semver=${server_semver}" >> $GITHUB_OUTPUT
+          echo "server_short=${server_short}" >> $GITHUB_OUTPUT
+          echo "dashboard_new=${dashboard_new}" >> $GITHUB_OUTPUT
+          echo "dashboard_semver=${dashboard_semver}" >> $GITHUB_OUTPUT
+          echo "dashboard_short=${dashboard_short}" >> $GITHUB_OUTPUT
+          echo "has_releasable=${has_releasable}" >> $GITHUB_OUTPUT
+
+  release:
+    needs: Versioning
+    if: ${{ needs.Versioning.outputs.has_releasable == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Configure git identity for tagging
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create component tags
         run: |
-          git tag "${{ steps.versioning.outputs.server_new }}"
-          git tag "${{ steps.versioning.outputs.dashboard_new }}"
-          git push origin "${{ steps.versioning.outputs.server_new }}" "${{ steps.versioning.outputs.dashboard_new }}"
+          set -euo pipefail
+          if [[ -n "${{ needs.Versioning.outputs.server_new }}" ]]; then
+            git tag "${{ needs.Versioning.outputs.server_new }}"
+            git push origin "${{ needs.Versioning.outputs.server_new }}"
+          else
+            echo "Server tagging skipped because no version was determined."
+          fi
+          if [[ -n "${{ needs.Versioning.outputs.dashboard_new }}" ]]; then
+            git tag "${{ needs.Versioning.outputs.dashboard_new }}"
+            git push origin "${{ needs.Versioning.outputs.dashboard_new }}"
+          else
+            echo "Dashboard tagging skipped because no version was determined."
+          fi
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
-
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push multi-arch image
+      - name: Build and push multi-arch server image
+        if: ${{ needs.Versioning.outputs.server_semver != '' }}
         uses: docker/build-push-action@v6
         with:
           context: ./server
@@ -148,10 +225,11 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/server:latest
-            ghcr.io/${{ github.repository_owner }}/server:${{ steps.versioning.outputs.server_short }}
-            ghcr.io/${{ github.repository_owner }}/server:${{ steps.versioning.outputs.server_semver }}
+            ghcr.io/${{ github.repository_owner }}/server:${{ needs.Versioning.outputs.server_short }}
+            ghcr.io/${{ github.repository_owner }}/server:${{ needs.Versioning.outputs.server_semver }}
 
-      - name: Build and push dashboard image
+      - name: Build and push multi-arch dashboard image
+        if: ${{ needs.Versioning.outputs.dashboard_semver != '' }}
         uses: docker/build-push-action@v6
         with:
           context: ./dashboard
@@ -160,5 +238,5 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/dashboard:latest
-            ghcr.io/${{ github.repository_owner }}/dashboard:${{ steps.versioning.outputs.dashboard_short }}
-            ghcr.io/${{ github.repository_owner }}/dashboard:${{ steps.versioning.outputs.dashboard_semver }}
+            ghcr.io/${{ github.repository_owner }}/dashboard:${{ needs.Versioning.outputs.dashboard_short }}
+            ghcr.io/${{ github.repository_owner }}/dashboard:${{ needs.Versioning.outputs.dashboard_semver }}

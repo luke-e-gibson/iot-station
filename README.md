@@ -19,12 +19,9 @@
   - Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
 
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
-  - Runs on pushes to `master` that include `#release` in the commit message.
-  - The workflow determines each service’s baseline by looking up the latest `<service>@vX.Y.Z` tag (`git tag --list "${service}@v*" --sort=-v:refname`) and increments patch unless a directive overrides it.
-  - Use `#server@vX.Y.Z` or `#dashboard@vX.Y.Z` to pin the exact version you want for that component.
-  - Use `#server-major` / `#dashboard-minor` / `#dashboard-patch` etc. to bump the indicated segment (patch resets to zero unless you bump it explicitly).
-  - Without any service-specific directive, the targeted service receives a patch bump from its last tag.
-  - Git tags follow the `<service>@vX.Y.Z` convention, and the Docker publishes both the patch-free short tag (`vX.Y`) and full semver per component together with `latest`.
+  - Runs on pushes to `master` that include `#release` in the commit message plus touch `server/**` or `dashboard/**` files; the first job (`CheckTriggers`) scans the push range `github.event.before..github.sha` and emits only the service names that changed and still have their Dockerfile.
+  - The next job (`Versioning`) reads that list, computes each component's next `<service>@vX.Y.Z` tag (or respects `#server@vx.y.z`/`#dashboard@vX.Y.Z`), and exposes `server_*`/`dashboard_*` metadata plus a `has_releasable` flag.
+  - The final `release` job runs only when `Versioning` published `has_releasable=true`; it tags the repository and builds/pushes the service images with `latest`, `vX.Y` (short), and the full semver tags.
 
 Examples:
 
