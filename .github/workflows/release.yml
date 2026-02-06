@@ -92,7 +92,7 @@ jobs:
       - name: Determine service versions
         id: versioning
         run: |
-          set -e pipefail
+          set -e
           msg="${{ github.event.head_commit.message }}"
           components_raw="${{ needs.CheckTriggers.outputs.release_components }}"
           components=()

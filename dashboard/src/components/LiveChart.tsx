@@ -12,7 +12,7 @@ export const LiveChart = ({ data }: LiveChartProps) => {
       time: new Date(record.timestamp).toLocaleTimeString(),
       temperature: record.temperature,
       humidity: record.humidity,
-    })).reverse(); // Reverse to show oldest to newest
+    })).reverse();
   }, [data]);
 
   return (

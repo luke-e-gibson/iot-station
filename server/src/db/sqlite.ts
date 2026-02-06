@@ -8,7 +8,6 @@ export class DatabaseImplSqlite implements Database {
     constructor(config: DatabaseConfig) {
         this.db = new DatabaseSync(config.config.filename);
         this.weather = new WeatherTableImplSqlite(this.db);
-
         this.weather.updateSchema();
     }
 
