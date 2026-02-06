@@ -29,29 +29,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           ref: ${{ github.sha }}
 
       - name: Detect changed files in push range
         id: check_changes
         run: |
-          before="${{ github.event.before }}"
-          sha="${{ github.sha }}"
-          if [[ "$before" == "0000000000000000000000000000000000000000" ]]; then
-            range="HEAD~1..HEAD"
+          range="${{ github.event.before }}..${{ github.sha }}"
+          changed_files=/tmp/changed
+          success=1
+
+          if git diff --name-only "$range" > "$changed_files" 2>/dev/null; then
+            success=0
           else
-            range="$before..$sha"
+            echo "Failed to compute changed files for range $range; git diff command failed."
           fi
+
           echo "Inspecting files changed in range: $range"
-          if git diff --name-only "$range" > /tmp/changed 2>/dev/null; then
-            if grep -qiE '^server/' /tmp/changed; then
+          if (( success == 0 )); then
+            if grep -qiE '^server/' "$changed_files"; then
               echo "has_server_changes=true" >> $GITHUB_OUTPUT
               echo "Detected changes in server/ directory."
             else
               echo "has_server_changes=false" >> $GITHUB_OUTPUT
               echo "No changes detected in server/ directory."
             fi
-            if grep -qiE '^dashboard/' /tmp/changed; then
+            if grep -qiE '^dashboard/' "$changed_files"; then
               echo "has_dashboard_changes=true" >> $GITHUB_OUTPUT
               echo "Detected changes in dashboard/ directory."
             else
@@ -81,14 +84,12 @@ jobs:
         run: |
           set -euo pipefail
           msg="${{ github.event.head_commit.message }}"
-          has_server="${{ needs.CheckTriggers.outputs.has_server_changes }}"
-          has_dashboard="${{ needs.CheckTriggers.outputs.has_dashboard_changes }}"
           components=()
 
           add_component() {
-            comp="$1"
-            dir="./${comp}"
-            dockerfile="${dir}/Dockerfile"
+            local comp="$1"
+            local dir="./${comp}"
+            local dockerfile="${dir}/Dockerfile"
 
             if [[ -d "$dir" && -f "$dockerfile" ]]; then
               components+=("$comp")
@@ -97,10 +98,10 @@ jobs:
             fi
           }
 
-          if [[ "$has_server" == "true" ]]; then
+          if [[ "${{ needs.CheckTriggers.outputs.has_server_changes }}" == "true" ]]; then
             add_component server
           fi
-          if [[ "$has_dashboard" == "true" ]]; then
+          if [[ "${{ needs.CheckTriggers.outputs.has_dashboard_changes }}" == "true" ]]; then
             add_component dashboard
           fi
 
@@ -165,13 +166,13 @@ jobs:
             git tag "${{ steps.versioning.outputs.server_new }}"
             git push origin "${{ steps.versioning.outputs.server_new }}"
           else
-            echo "Server tagging skipped because versioning emitted no output for that component."
+            echo "Server tagging skipped because no version was determined."
           fi
           if [[ -n "${{ steps.versioning.outputs.dashboard_new }}" ]]; then
             git tag "${{ steps.versioning.outputs.dashboard_new }}"
             git push origin "${{ steps.versioning.outputs.dashboard_new }}"
           else
-            echo "Dashboard tagging skipped because versioning emitted no output for that component."
+            echo "Dashboard tagging skipped because no version was determined."
           fi
 
       - uses: docker/setup-qemu-action@v3
@@ -182,7 +183,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push multi-arch image
+      - name: Build and push multi-arch server image
         if: ${{ needs.CheckTriggers.outputs.has_server_changes == 'true' && steps.versioning.outputs.server_semver != '' }}
         uses: docker/build-push-action@v6
         with:
@@ -195,7 +196,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/server:${{ steps.versioning.outputs.server_short }}
             ghcr.io/${{ github.repository_owner }}/server:${{ steps.versioning.outputs.server_semver }}
 
-      - name: Build and push dashboard image
+      - name: Build and push multi-arch dashboard image
         if: ${{ needs.CheckTriggers.outputs.has_dashboard_changes == 'true' && steps.versioning.outputs.dashboard_semver != '' }}
         uses: docker/build-push-action@v6
         with:

@@ -1,3 +1,4 @@
+---
 name: Continuous Integration
 run-name: CI Pipeline
 
@@ -11,8 +12,8 @@ on:
       - "master"
     paths:
       - "server/**"
-      - "client/**"
       - "dashboard/**"
+      - "client/**"
 
 permissions:
   contents: read
