@@ -19,12 +19,9 @@
   - Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
 
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
-  - Runs on pushes to `master` that include `#release` in the commit message and touch `server/**` or `dashboard/**` paths (other folders are ignored by this workflow); the change detector inspects the commits in the push event range `github.event.before..github.sha`, i.e. all commits that are part of that push from the previous remote state to the new `HEAD`.
-  - Only services whose directories changed in that push range and still contain the expected `Dockerfile` receive new versions; untouched services keep their previous tags.
-  - For the services flagged by that same push range, the workflow determines each released baseline by running `git tag --list "${service}@v*"`, picking the latest tag within that range, and incrementing the patch segment for the targeted component.
-  - Use `#server@vX.Y.Z` or `#dashboard@vX.Y.Z` to pin the exact version you want for that component; otherwise the patch segment increases automatically without additional directives.
-  - Use `#server-major`, `#server-minor`, `#dashboard-major`, or `#dashboard-minor` to bump the major or minor version instead of patch for the respective component.
-  - Git tags follow the `<service>@vX.Y.Z` convention, and the Docker publishes both the patch-free short tag (`vX.Y`) and the full semver per component together with `latest`.
+  - Runs on pushes to `master` that include `#release` in the commit message plus touch `server/**` or `dashboard/**` files; the first job (`CheckTriggers`) scans the push range `github.event.before..github.sha` and emits only the service names that changed and still have their Dockerfile.
+  - The next job (`Versioning`) reads that list, computes each component's next `<service>@vX.Y.Z` tag (or respects `#server@vx.y.z`/`#dashboard@vX.Y.Z`), and exposes `server_*`/`dashboard_*` metadata plus a `has_releaseable` flag.
+  - The final `release` job runs only when `Versioning` published `has_releaseable=true`; it tags the repository and builds/pushes the service images with `latest`, `vX.Y` (short), and the full semver tags.
 
 Examples:
 
