@@ -16,7 +16,7 @@ export class Instance {
         // Set the instance before creating the database to avoid circular dependency
         Instance.instance = this;
         
-        this.logger = new Logger("Iot Station Server");
+        this.logger = new Logger("IoT Station Server");
         this.database = createDatabase({ type: "sqlite", config: { filename: "weather_data.db" } });
     }
 
