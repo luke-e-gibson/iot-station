@@ -1,6 +1,5 @@
 import express from 'express'
 import { Instance } from './Instance'
-import { createDatabase } from './db/index'
 
 const instance = Instance.getInstance();
 const app = express()
