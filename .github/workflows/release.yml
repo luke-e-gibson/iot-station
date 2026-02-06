@@ -32,10 +32,18 @@ jobs:
           fetch-depth: 2
           ref: ${{ github.sha }}
 
-      - name: Detect changed files in last commit only
+      - name: Detect changed files in push range
         id: check_changes
         run: |
-          if git diff --name-only HEAD~1..HEAD > /tmp/changed 2>/dev/null; then
+          before="${{ github.event.before }}"
+          sha="${{ github.sha }}"
+          if [[ "$before" == "0000000000000000000000000000000000000000" ]]; then
+            range="HEAD~1..HEAD"
+          else
+            range="$before..$sha"
+          fi
+          echo "Inspecting files changed in range: $range"
+          if git diff --name-only "$range" > /tmp/changed 2>/dev/null; then
             if grep -qiE '^server/' /tmp/changed; then
               echo "has_server_changes=true" >> $GITHUB_OUTPUT
               echo "Detected changes in server/ directory."

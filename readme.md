@@ -19,9 +19,9 @@
   - Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
 
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
-  - Runs on pushes to `master` that include `#release` in the commit message and touch `server/**` or `dashboard/**` paths (other folders are ignored by this workflow).
-  - Only services whose directories changed and still contain the expected `Dockerfile` receive new versions; untouched services keep their previous tags.
-  - The workflow determines each released service’s baseline by looking up the latest `<service>@vX.Y.Z` tag and increments the patch segment for every targeted component.
+  - Runs on pushes to `master` that include `#release` in the commit message and touch `server/**` or `dashboard/**` paths (other folders are ignored by this workflow); because the change detector only inspects the latest commit range (`HEAD~1..HEAD`), changes introduced earlier in a multi-commit push are ignored when deciding which files triggered the run.
+  - Only services whose directories changed in that `HEAD~1..HEAD` range and still contain the expected `Dockerfile` receive new versions; untouched services keep their previous tags.
+  - For the services flagged by that same `HEAD~1..HEAD` diff, the workflow determines each released baseline by running `git tag --list "${service}@v*"`, picking the latest tag within that range, and incrementing the patch segment for the targeted component.
   - Use `#server@vX.Y.Z` or `#dashboard@vX.Y.Z` to pin the exact version you want for that component; otherwise the patch segment increases automatically without additional directives.
   - Use `#server-major`, `#server-minor`, `#dashboard-major`, or `#dashboard-minor` to bump the major or minor version instead of patch for the respective component.
   - Git tags follow the `<service>@vX.Y.Z` convention, and the Docker publishes both the patch-free short tag (`vX.Y`) and the full semver per component together with `latest`.
