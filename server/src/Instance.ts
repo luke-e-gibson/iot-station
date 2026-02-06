@@ -1,17 +1,30 @@
+import { Config } from "./Config";
 import { createDatabase } from "./db";
 import { Database } from "./db/db";
+import { Logger } from "./Logger";
 
 export class Instance {
     private static instance: Instance;
 
     private database?: Database;
+    private config: Config;
+    private logger: Logger;
 
     constructor() {
         if (Instance.instance) {
             throw new Error("Instance already exists. Use Instance.getInstance() to access it.");
         }
 
-        this.database = createDatabase({ type: "sqlite", config: { filename: "weather_data.db" } });
+        // Set the instance before creating the database to avoid circular dependency
+        Instance.instance = this;
+        this.config = new Config();
+        this.config.loadConfig();
+        
+        this.logger = new Logger("Iot Station Server", this.config.getLoggerConfig());
+        this.database = createDatabase(
+            this.config.getDatabaseConfig() ?? { type: "sqlite", config: { filename: ":memory:" } },
+            this.logger
+        );
     }
 
     public static getInstance(): Instance {
@@ -19,6 +32,10 @@ export class Instance {
             Instance.instance = new Instance();
         }
         return Instance.instance;
+    }
+
+    public getLogger(): Logger {
+        return this.logger;
     }
     
     public getDatabase(): Database {
