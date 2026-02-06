@@ -82,7 +82,7 @@ jobs:
       dashboard_new: ${{ steps.versioning.outputs.dashboard_new }}
       dashboard_semver: ${{ steps.versioning.outputs.dashboard_semver }}
       dashboard_short: ${{ steps.versioning.outputs.dashboard_short }}
-      has_releaseable: ${{ steps.versioning.outputs.has_releaseable }}
+      has_releasable: ${{ steps.versioning.outputs.has_releasable }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -107,7 +107,7 @@ jobs:
           dashboard_new=""
           dashboard_semver=""
           dashboard_short=""
-          has_releaseable=false
+          has_releasable=false
 
           if [[ ${#components[@]} -eq 0 ]]; then
             echo "No valid components detected for release; exiting."
@@ -164,7 +164,7 @@ jobs:
             fi
 
             echo "Determined ${comp} version: ${new_tag}"
-            has_releaseable=true
+            has_releasable=true
           done
 
           echo "server_new=${server_new}" >> $GITHUB_OUTPUT
@@ -173,11 +173,11 @@ jobs:
           echo "dashboard_new=${dashboard_new}" >> $GITHUB_OUTPUT
           echo "dashboard_semver=${dashboard_semver}" >> $GITHUB_OUTPUT
           echo "dashboard_short=${dashboard_short}" >> $GITHUB_OUTPUT
-          echo "has_releaseable=${has_releaseable}" >> $GITHUB_OUTPUT
+          echo "has_releasable=${has_releasable}" >> $GITHUB_OUTPUT
 
   release:
     needs: Versioning
-    if: ${{ needs.Versioning.outputs.has_releaseable == 'true' }}
+    if: ${{ needs.Versioning.outputs.has_releasable == 'true' }}
     runs-on: ubuntu-latest
 
     steps:

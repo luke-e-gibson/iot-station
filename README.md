@@ -20,8 +20,8 @@
 
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
   - Runs on pushes to `master` that include `#release` in the commit message plus touch `server/**` or `dashboard/**` files; the first job (`CheckTriggers`) scans the push range `github.event.before..github.sha` and emits only the service names that changed and still have their Dockerfile.
-  - The next job (`Versioning`) reads that list, computes each component's next `<service>@vX.Y.Z` tag (or respects `#server@vx.y.z`/`#dashboard@vX.Y.Z`), and exposes `server_*`/`dashboard_*` metadata plus a `has_releaseable` flag.
-  - The final `release` job runs only when `Versioning` published `has_releaseable=true`; it tags the repository and builds/pushes the service images with `latest`, `vX.Y` (short), and the full semver tags.
+  - The next job (`Versioning`) reads that list, computes each component's next `<service>@vX.Y.Z` tag (or respects `#server@vx.y.z`/`#dashboard@vX.Y.Z`), and exposes `server_*`/`dashboard_*` metadata plus a `has_releasable` flag.
+  - The final `release` job runs only when `Versioning` published `has_releasable=true`; it tags the repository and builds/pushes the service images with `latest`, `vX.Y` (short), and the full semver tags.
 
 Examples:
 
