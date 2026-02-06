@@ -21,7 +21,10 @@ export class Instance {
         this.config.loadConfig();
         
         this.logger = new Logger("Iot Station Server", this.config.getLoggerConfig());
-        this.database = createDatabase(this.config.getDatabaseConfig() ?? { type: "sqlite", config: { filename: ":memory:" } });
+        this.database = createDatabase(
+            this.config.getDatabaseConfig() ?? { type: "sqlite", config: { filename: ":memory:" } },
+            this.logger
+        );
     }
 
     public static getInstance(): Instance {
