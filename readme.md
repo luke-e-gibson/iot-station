@@ -21,9 +21,9 @@
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
   - Runs on pushes to `master` that include `#release` in the commit message and touch `server/**` or `dashboard/**` paths (other folders are ignored by this workflow).
   - Only services whose directories changed and still contain the expected `Dockerfile` receive new versions; untouched services keep their previous tags.
-  - The workflow determines each released service’s baseline by looking up the latest `<service>@vX.Y.Z` tag (`git tag --list "${service}@v*" --sort=-v:refname`) and increments the patch segment when no directive overrides it.
-  - Use `#server@vX.Y.Z` or `#dashboard@vX.Y.Z` to pin the exact version you want for that component.
-  - Use `#server-major` or `#dashboard-minor` to bump just the indicated segment; per semver the lower-order segments reset to zero (e.g., a major bump zeroes minor and patch), and patch increments happen automatically without a dedicated directive.
+  - The workflow determines each released service’s baseline by looking up the latest `<service>@vX.Y.Z` tag and increments the patch segment for every targeted component.
+  - Use `#server@vX.Y.Z` or `#dashboard@vX.Y.Z` to pin the exact version you want for that component; otherwise the patch segment increases automatically without additional directives.
+  - Use `#server-major`, `#server-minor`, `#dashboard-major`, or `#dashboard-minor` to bump the major or minor version instead of patch for the respective component.
   - Git tags follow the `<service>@vX.Y.Z` convention, and the Docker publishes both the patch-free short tag (`vX.Y`) and the full semver per component together with `latest`.
 
 Examples:
