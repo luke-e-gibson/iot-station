@@ -1,9 +1,10 @@
 import express from 'express'
 import { createDatabase } from './db/index'
 
-
+const instance = Instance.getInstance();
 const app = express()
 
+app.use(instance.getLogger().createHttpLogger().expressMiddleware) // Use the HTTP logger middleware
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
@@ -16,6 +17,7 @@ app.use((req, res, next) => {
 })
 
 import weatherRouter from './api/weather'
+import { Instance } from './Instance'
 
 app.use('/api', weatherRouter)
 

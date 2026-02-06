@@ -1,13 +1,19 @@
 import { DatabaseSync } from "node:sqlite"
 import { Database, DatabaseConfig, WeatherTable } from "./db"
+import { Logger } from "../Logger";
+import { Instance } from "../Instance";
  
 export class DatabaseImplSqlite implements Database {
+    private _logger: Logger;
     private db: DatabaseSync;
     public weather: WeatherTable;
+
+
 
     constructor(config: DatabaseConfig) {
         this.db = new DatabaseSync(config.config.filename);
         this.weather = new WeatherTableImplSqlite(this.db);
+        this._logger = Instance.getInstance().getLogger().createSublogger("Database");
 
         this.weather.updateSchema();
     }
@@ -18,9 +24,14 @@ export class DatabaseImplSqlite implements Database {
 }
 
 export class WeatherTableImplSqlite implements WeatherTable {
-    constructor(private database: DatabaseSync) {}
+    private _logger: Logger;
+
+    constructor(private database: DatabaseSync) {
+        this._logger = Instance.getInstance().getLogger().createSublogger("WeatherTable");
+    }
 
     updateSchema(): void {
+        this._logger.log("Updating weather_data table schema if necessary...");
         this.database.exec(`
 CREATE TABLE IF NOT EXISTS weather_data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,6 +43,7 @@ CREATE TABLE IF NOT EXISTS weather_data (
     }
 
     addWeatherRecord(temperature: number, humidity: number): void {
+        this._logger.log(`Adding weather record: temperature=${temperature}, humidity=${humidity}`);
         const record = this.database.prepare('INSERT INTO weather_data (temperature, humidity) VALUES (?, ?)')
         record.run(temperature, humidity)
     }
