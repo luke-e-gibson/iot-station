@@ -36,7 +36,6 @@ function App() {
         setLoading(false)
       }
     }
-
     fetchData()
     const interval = setInterval(fetchData, 5000) // Poll every 5 seconds
     return () => clearInterval(interval)

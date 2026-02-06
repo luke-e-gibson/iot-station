@@ -111,6 +111,7 @@ jobs:
 
           if [[ ${#components[@]} -eq 0 ]]; then
             echo "No valid components detected for release; exiting."
+            echo "has_releasable=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -138,16 +139,20 @@ jobs:
               semver="${major}.${minor}.${patch}"
             fi
 
-            while git rev-parse --verify --quiet "refs/tags/${comp}@v${semver}" >/dev/null; do
-              if [[ "$semver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                major="${BASH_REMATCH[1]}"
-                minor="${BASH_REMATCH[2]}"
-                patch="${BASH_REMATCH[3]}"
+            while true; do
+              if git rev-parse --verify --quiet "refs/tags/${comp}@v${semver}" >/dev/null; then
+                if [[ "$semver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                  major="${BASH_REMATCH[1]}"
+                  minor="${BASH_REMATCH[2]}"
+                  patch="${BASH_REMATCH[3]}"
+                else
+                  major=0; minor=0; patch=0
+                fi
+                ((patch++))
+                semver="${major}.${minor}.${patch}"
               else
-                major=0; minor=0; patch=0
+                break
               fi
-              ((patch++))
-              semver="${major}.${minor}.${patch}"
             done
 
             new_tag="${comp}@v${semver}"
