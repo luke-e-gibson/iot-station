@@ -3,13 +3,13 @@ import { Instance } from '../Instance'
 
 const router = Router()
 
-router.get('/debug', (req: Request, res: Response) => {
+router.get('/', (req: Request, res: Response) => {
     res.json({ message: 'Debug endpoint is working!' })
 })
 
-router.get('/debug/weather-records', (req: Request, res: Response) => {
+router.get('/create-weather-records', (req: Request, res: Response) => {
     const instance = Instance.getInstance();
-    const weatherRecords = instance.getDatabase().weather.getWeatherRecords();
+    const weatherRecords = instance.getDatabase().weather._debug_create_test_data();
     res.json(weatherRecords);
 });
 

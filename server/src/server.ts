@@ -1,4 +1,5 @@
 import express from 'express'
+import { Instance } from './Instance'
 import { createDatabase } from './db/index'
 
 const instance = Instance.getInstance();
@@ -17,8 +18,9 @@ app.use((req, res, next) => {
 })
 
 import weatherRouter from './api/weather'
-import { Instance } from './Instance'
+import debugRouter from './api/debug'
 
+app.use('/api/_debug', debugRouter)
 app.use('/api', weatherRouter)
 
 

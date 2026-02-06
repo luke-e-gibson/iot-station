@@ -9,6 +9,9 @@ export interface WeatherTable extends DatabaseTable {
     getWeatherRecords(): Array<{ id: number, temperature: number, humidity: number, timestamp: string }>
     getWeatherRecordsInTimeRange(start: string, end: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string }>
     getLatestNWeatherRecords(n: number): Array<{ id: number, temperature: number, humidity: number, timestamp: string }>
+
+    _debug_create_test_data(): void;
+
 }
 
 export interface Database {
