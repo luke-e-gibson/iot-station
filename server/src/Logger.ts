@@ -1,5 +1,6 @@
 import express from 'express'; 
 import fs from 'fs'; 
+import path from 'path';
 
 export class Logger {
     private _name: string;
@@ -12,9 +13,24 @@ export class Logger {
         if(loggerConfig) {
             if(loggerConfig.output.includes("file") && loggerConfig.file) {
                 this.filePath = loggerConfig.file.path;
-                this.fileStream = fs.createWriteStream(this.filePath, { flags: 'a' });
+                this.initializeLogFile();
                 this.fileLoggingEnabled = true;
             }
+        }
+    }
+
+    private initializeLogFile(): void {
+        if (!this.filePath) return;
+
+        try {
+            const dirPath = path.dirname(this.filePath);
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath, { recursive: true });
+            }
+            this.fileStream = fs.createWriteStream(this.filePath, { flags: 'a' });
+        } catch (error) {
+            console.error(`Failed to initialize log file at ${this.filePath}:`, error);
+            this.fileLoggingEnabled = false;
         }
     }
 

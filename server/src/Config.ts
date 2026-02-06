@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 interface LoggerConfig {
     output: Array<'console' | 'file'>,
-    file?: Array<"console" | "file">,
+    file?: { path: string },
 }
 
 interface DatabaseConfigRaw {
