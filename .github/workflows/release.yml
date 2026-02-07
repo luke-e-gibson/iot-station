@@ -111,7 +111,7 @@ jobs:
           fi
 
           {
-            echo "release_msg<<'EOF'"
+            echo "release_msg<<EOF"
             printf '%s\n' "$msg"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
