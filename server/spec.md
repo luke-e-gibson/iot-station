@@ -10,44 +10,44 @@
 
 Create a new weather record.
 
-- **Request Body (JSON or x-www-form-urlencoded)**
-  - `temperature` (number, required)
-  - `humidity` (number, required)
+**Request Body (JSON or x-www-form-urlencoded)**
+  `temperature` (number, required)
+  `humidity` (number, required)
 
-- **Responses**
-  - `201 Created`
+**Responses**
+  `201 Created`
 
-    ```json
-    { "message": "Data inserted successfully" }
-    ```
+```json
+{ "message": "Data inserted successfully" }
+```
 
-  - `400 Bad Request` - Invalid or missing parameters.
-  - `500 Internal Server Error` - Database or server error.
+  `400 Bad Request` - Invalid or missing parameters.
+  `500 Internal Server Error` - Database or server error.
 
 ### GET `/api/weather`
 
 Retrieve weather records ordered by `timestamp` descending.
 
-- **Responses**
-  - `200 OK`
+**Responses**
+  `200 OK`
 
-    ```json
-    [
-      {
-        "id": number,
-        "temperature": number,
-        "humidity": number,
-        "timestamp": string
-      }
-    ]
-    ```
+```json
+[
+  {
+    "id": number,
+    "temperature": number,
+    "humidity": number,
+    "timestamp": string
+  }
+]
+```
 
-  - `500 Internal Server Error` — Database or server error.
+  `500 Internal Server Error` — Database or server error.
 
 ## Data Model
 
-- **Table:** `weather_data`
-  - `id` (integer, primary key, auto-increment)
-  - `temperature` (number, not null)
-  - `humidity` (number, not null)
-  - `timestamp` (datetime, current timestamp)
+**Table:** `weather_data`
+  `id` (integer, primary key, auto-increment)
+  `temperature` (number, not null)
+  `humidity` (number, not null)
+  `timestamp` (datetime, current timestamp)

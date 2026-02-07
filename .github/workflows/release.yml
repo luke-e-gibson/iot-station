@@ -89,8 +89,8 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Determine service versions
-        id: versioning
+      - name: Gather release metadata
+        id: release_meta
         run: |
           set -e
           range="${{ github.event.before }}..${{ github.sha }}"
@@ -109,92 +109,23 @@ jobs:
           if [[ -z "$msg" ]]; then
             msg=$(git log -1 --format=%B "${{ github.sha }}")
           fi
-          components_raw="${{ needs.CheckTriggers.outputs.release_components }}"
-          components=()
 
-          if [[ -n "${components_raw}" ]]; then
-            read -r -a components <<< "${components_raw}"
-          fi
+          echo "release_msg<<'EOF'" >> "$GITHUB_OUTPUT"
+          printf '%s
 
-          server_new=""
-          server_semver=""
-          server_short=""
-          dashboard_new=""
-          dashboard_semver=""
-          dashboard_short=""
-          has_releasable=false
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
-          if [[ ${#components[@]} -eq 0 ]]; then
-            echo "No valid components detected for release; exiting."
-            echo "has_releasable=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          for comp in "${components[@]}"; do
-            semver=""
-            if [[ "$msg" =~ \#${comp}@v([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-              semver="${BASH_REMATCH[1]}"
-            else
-              latest_tag=$(git tag --list "${comp}@v*" --sort=-v:refname | head -n1 || true)
-              latest="${latest_tag#${comp}@v}"
-              if [[ "$latest" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                major="${BASH_REMATCH[1]}"
-                minor="${BASH_REMATCH[2]}"
-                patch="${BASH_REMATCH[3]}"
-              else
-                major=0; minor=0; patch=0
-              fi
-              if [[ "$msg" =~ \#${comp}-major ]]; then
-                major=$((major + 1)); minor=0; patch=0
-              elif [[ "$msg" =~ \#${comp}-minor ]]; then
-                minor=$((minor + 1)); patch=0
-              else
-                patch=$((patch + 1))
-              fi
-              semver="${major}.${minor}.${patch}"
-            fi
-
-            while true; do
-              if git rev-parse --verify --quiet "refs/tags/${comp}@v${semver}" >/dev/null; then
-                if [[ "$semver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                  major="${BASH_REMATCH[1]}"
-                  minor="${BASH_REMATCH[2]}"
-                  patch="${BASH_REMATCH[3]}"
-                else
-                  major=0; minor=0; patch=0
-                fi
-                patch=$((patch + 1))
-                semver="${major}.${minor}.${patch}"
-              else
-                break
-              fi
-            done
-
-            new_tag="${comp}@v${semver}"
-            short="v${semver%.*}"
-
-            if [[ "$comp" == "server" ]]; then
-              server_new="${new_tag}"
-              server_semver="${semver}"
-              server_short="${short}"
-            elif [[ "$comp" == "dashboard" ]]; then
-              dashboard_new="${new_tag}"
-              dashboard_semver="${semver}"
-              dashboard_short="${short}"
-            fi
-
-            echo "Determined ${comp} version: ${new_tag}"
-            has_releasable=true
-          done
-
-          echo "server_new=${server_new}" >> "$GITHUB_OUTPUT"
-          echo "server_semver=${server_semver}" >> "$GITHUB_OUTPUT"
-          echo "server_short=${server_short}" >> "$GITHUB_OUTPUT"
-          echo "dashboard_new=${dashboard_new}" >> "$GITHUB_OUTPUT"
-          echo "dashboard_semver=${dashboard_semver}" >> "$GITHUB_OUTPUT"
-          echo "dashboard_short=${dashboard_short}" >> "$GITHUB_OUTPUT"
-          echo "has_releasable=${has_releasable}" >> "$GITHUB_OUTPUT"
-
+      - name: Determine service versions
+        id: versioning
+        env:
+          RELEASE_MSG: ${{ steps.release_meta.outputs.release_msg }}
+          RELEASE_COMPONENTS: ${{ needs.CheckTriggers.outputs.release_components }}
+          COMPONENT_SEMVER_SERVER: ${{ env.COMPONENT_SEMVER_SERVER }}
+          COMPONENT_SEMVER_DASHBOARD: ${{ env.COMPONENT_SEMVER_DASHBOARD }}
+          COMPONENT_EXISTING_TAGS_SERVER: ${{ env.COMPONENT_EXISTING_TAGS_SERVER }}
+          COMPONENT_EXISTING_TAGS_DASHBOARD: ${{ env.COMPONENT_EXISTING_TAGS_DASHBOARD }}
+        run: |
+          ./.github/workflows/determine-versions.sh
   release:
     needs: Versioning
     if: ${{ needs.Versioning.outputs.has_releasable == 'true' }}

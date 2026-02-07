@@ -12,16 +12,16 @@
 ## CI & Release workflow flags
 
 - CI workflow: see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
-  - Note: The CI workflow is triggered only for pull requests targeting the `master` branch.
-  - The CI first detects which files changed in the latest commit of the PR.
-  - Docker build (`BuildDocker`) runs only if server files changed and the commit/PR does not contain `#no-docker`.
-  - PlatformIO preparation and builds (`PreparePlatformIO` / `PlatformIoBuild`) run only if client files changed and the commit/PR does not contain `#no-pio`.
-  - Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
+  Note: The CI workflow is triggered only for pull requests targeting the `master` branch.
+  The CI first detects which files changed in the latest commit of the PR.
+  Docker build (`BuildDocker`) runs only if server files changed and the commit/PR does not contain `#no-docker`.
+  PlatformIO preparation and builds (`PreparePlatformIO` / `PlatformIoBuild`) run only if client files changed and the commit/PR does not contain `#no-pio`.
+  Use `#no-docker` or `#no-pio` in the commit message, PR title, or PR body to opt out of the respective job.
 
 - Release workflow: see [`.github/workflows/release.yml`](.github/workflows/release.yml)
-  - Runs on pushes to `master` that include `#release` in the commit message plus touch `server/**` or `dashboard/**` files; the first job (`CheckTriggers`) scans the push range `github.event.before..github.sha` and emits only the service names that changed and still have their Dockerfile.
-  - The next job (`Versioning`) reads that list, computes each component's next `<service>@vX.Y.Z` tag (or respects `#server@vx.y.z`/`#dashboard@vX.Y.Z`), and exposes `server_*`/`dashboard_*` metadata plus a `has_releasable` flag.
-  - The final `release` job runs only when `Versioning` published `has_releasable=true`; it tags the repository and builds/pushes the service images with `latest`, `vX.Y` (short), and the full semver tags.
+  Runs on pushes to `master` that include `#release` in the commit message plus touch `server/**` or `dashboard/**` files; the first job (`CheckTriggers`) scans the push range `github.event.before..github.sha` and emits only the service names that changed and still have their Dockerfile.
+  The next job (`Versioning`) reads that list, computes each component's next `<service>@vX.Y.Z` tag (or respects `#server@vx.y.z`/`#dashboard@vX.Y.Z`), and exposes `server_*`/`dashboard_*` metadata plus a `has_releasable` flag.
+  The final `release` job runs only when `Versioning` published `has_releasable=true`; it tags the repository and builds/pushes the service images with `latest`, `vX.Y` (short), and the full semver tags.
 
 Examples:
 
@@ -56,9 +56,9 @@ To keep the repository clean and reviewable:
 - Each **commit** should represent one logical change.  
 - Avoid mixing unrelated changes in the same commit or branch.  
 - Use descriptive branch names such as:
-  - `main` - stable, production-ready
-  - `develop` - integration branch  
-  - `feature/<short-description>` - new work  
-  - `fix/<short-description>` - bug fixes  
-  - `chore/<short-description>` - maintenance tasks
-  - `refactor/<short-description>` - large code changes
+  `main` - stable, production-ready
+  `develop` - integration branch  
+  `feature/<short-description>` - new work  
+  `fix/<short-description>` - bug fixes  
+  `chore/<short-description>` - maintenance tasks
+  `refactor/<short-description>` - large code changes
