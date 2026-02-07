@@ -51,3 +51,4 @@ Retrieve weather records ordered by `timestamp` descending.
   `temperature` (number, not null)
   `humidity` (number, not null)
   `timestamp` (datetime, current timestamp)
+...
