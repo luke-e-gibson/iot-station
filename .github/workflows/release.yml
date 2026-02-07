@@ -110,10 +110,11 @@ jobs:
             msg=$(git log -1 --format=%B "${{ github.sha }}")
           fi
 
-          echo "release_msg<<'EOF'" >> "$GITHUB_OUTPUT"
-          printf '%s
-
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "release_msg<<'EOF'"
+            printf '%s\n' "$msg"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Determine service versions
         id: versioning
