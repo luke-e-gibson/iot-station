@@ -74,6 +74,18 @@ CREATE TABLE IF NOT EXISTS weather_data (
         return rows.map(r => r.device)
     }
 
+    getWeatherRecordsFromDevice(device: string): Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string; }> {
+        this._logger.log(`Fetching weather records from device: ${device}...`);
+        const statement = this.database.prepare('SELECT * FROM weather_data WHERE device = ? ORDER BY timestamp DESC')
+        return statement.all(device) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string; }>
+    }
+
+    getLatestNWeatherRecordsFromDevice(n: number, device: string): Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string; }> {
+        this._logger.log(`Fetching latest ${n} weather records from device: ${device}...`);
+        const statement = this.database.prepare('SELECT * FROM weather_data WHERE device = ? ORDER BY timestamp DESC LIMIT ?')
+        return statement.all(device, n) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string; }>
+    }
+
     _debug_create_test_data() {
         this._logger.log("Creating test data...");
         const insert = this.database.prepare('INSERT INTO weather_data (temperature, humidity, device) VALUES (?, ?, ?)')
