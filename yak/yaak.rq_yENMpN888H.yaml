@@ -1,0 +1,18 @@
+type: http_request
+model: http_request
+id: rq_yENMpN888H
+createdAt: 2026-02-08T09:34:47.009121
+updatedAt: 2026-02-08T09:35:09.907701100
+workspaceId: wk_jMKNXedWko
+folderId: null
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: Get Devices
+sortPriority: -1770098989251.0
+url: http://${[ HOST ]}:${[ PORT ]}/api/devices/get
+urlParameters: []

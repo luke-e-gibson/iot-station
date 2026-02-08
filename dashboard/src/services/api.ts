@@ -1,9 +1,15 @@
-const API_BASE_URL = '/api';
+let API_BASE_URL: string;
+if(import.meta.env.DEV) {
+  API_BASE_URL = 'http://localhost:3000/api';
+} else {
+  API_BASE_URL = '/api';
+}
 
 export interface WeatherRecord {
   id: number;
   temperature: number;
   humidity: number;
+  device: string;
   timestamp: string;
 }
 
@@ -32,6 +38,26 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/weather/latest?count=${count}`);
     if (!response.ok) throw new Error('Failed to fetch latest weather records');
     return response.json();
+  }
+
+  async getDeviceLatestWeatherRecords(device: string, count: number = 50): Promise<WeatherRecord[]> {
+    const response = await fetch(`${API_BASE_URL}/devices/${encodeURIComponent(device)}/weather/latest?count=${count}`);
+    if (!response.ok) throw new Error('Failed to fetch latest weather records for device');
+    return response.json();
+  }
+
+  async getDeviceWeatherRecords(device: string): Promise<WeatherRecord[]> {
+    const response = await fetch(`${API_BASE_URL}/devices/${encodeURIComponent(device)}/weather`);
+    if (!response.ok) throw new Error('Failed to fetch weather records for device');
+    return response.json();
+  }
+
+  async getDevices(): Promise<string[]> {
+    const response = await fetch(`${API_BASE_URL}/devices/get`);
+    if (!response.ok) throw new Error('Failed to fetch devices');
+    const payload = await response.json();
+    if (Array.isArray(payload?.devices)) return payload.devices as string[];
+    return [];
   }
 
   async getWeatherStats(): Promise<WeatherStats> {

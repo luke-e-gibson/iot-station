@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_vuygBHaDas
 createdAt: 2026-02-03T06:12:10.708607600
-updatedAt: 2026-02-03T06:18:28.988814800
+updatedAt: 2026-02-08T09:22:58.112404200
 workspaceId: wk_jMKNXedWko
 folderId: null
 authentication: {}
@@ -11,7 +11,8 @@ body:
   text: |-
     {
       "temperature": 21.56,
-      "humidity": "30"
+      "humidity": "30",
+      "device": "test-device"
     }
 bodyType: application/json
 description: ''
