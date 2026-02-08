@@ -2,9 +2,10 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
-import { Thermometer, Droplets, TrendingUp, TrendingDown } from "lucide-react"
-import { api, type WeatherRecord, type WeatherStats } from "./services/api"
+import { Thermometer, Droplets, TrendingUp, TrendingDown, Database } from "lucide-react"
+import { api, isDevelopment, type WeatherRecord, type WeatherStats } from "./services/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
 
 const chartConfig = {
   temperature: {
@@ -23,6 +24,7 @@ function App() {
   const [devices, setDevices] = useState<string[]>([])
   const [selectedDevice, setSelectedDevice] = useState("all")
   const [loading, setLoading] = useState(true)
+  const [creatingMockData, setCreatingMockData] = useState(false)
 
   const computeStats = (records: WeatherRecord[]): WeatherStats => {
     if (records.length === 0) {
@@ -102,6 +104,19 @@ function App() {
   }))
   const latest = data[0]
 
+  const handleCreateMockData = async () => {
+    setCreatingMockData(true)
+    try {
+      await api.createMockData()
+      // Data will be refreshed by the existing interval
+    } catch (error) {
+      console.error("Error creating mock data:", error)
+      alert("Failed to create mock data. Make sure the server is running in development mode.")
+    } finally {
+      setCreatingMockData(false)
+    }
+  }
+
   if (loading && data.length === 0) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>
   }
@@ -114,21 +129,34 @@ function App() {
             <h1 className="text-3xl font-bold tracking-tight">Weather Station Dashboard</h1>
             <p className="text-muted-foreground">Real-time temperature and humidity monitoring.</p>
           </div>
-          <div className="flex w-full flex-col gap-1 sm:w-auto">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">Device</span>
-            <Select value={selectedDevice} onValueChange={setSelectedDevice}>
-              <SelectTrigger className="w-full min-w-[220px] sm:w-[260px]">
-                <SelectValue placeholder="Select device" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All devices</SelectItem>
-                {devices.map(device => (
-                  <SelectItem key={device} value={device}>
-                    {device}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end">
+            <div className="flex w-full flex-col gap-1 sm:w-auto">
+              <span className="text-xs font-semibold uppercase text-muted-foreground">Device</span>
+              <Select value={selectedDevice} onValueChange={setSelectedDevice}>
+                <SelectTrigger className="w-full min-w-[220px] sm:w-[260px]">
+                  <SelectValue placeholder="Select device" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All devices</SelectItem>
+                  {devices.map(device => (
+                    <SelectItem key={device} value={device}>
+                      {device}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {isDevelopment && (
+              <Button 
+                onClick={handleCreateMockData} 
+                disabled={creatingMockData}
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
+                <Database className="mr-2 h-4 w-4" />
+                {creatingMockData ? "Creating..." : "Create Mock Data"}
+              </Button>
+            )}
           </div>
         </header>
 

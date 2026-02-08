@@ -27,14 +27,9 @@ const environment = instance.getConfig().getEnvironment();
 logger.log(`Running in ${environment} mode`);
 
 // Only register debug routes in development mode
-const isDev = instance.getConfig().isDevelopment();
-logger.log(`isDevelopment() returns: ${isDev}`);
-if (isDev) {
+if (instance.getConfig().isDevelopment()) {
     logger.log('WARNING: Debug routes are enabled at /api/_debug');
     app.use('/api/_debug', debugRouter)
-    logger.log('Debug router registered');
-} else {
-    logger.log('Debug routes are disabled (production mode)');
 }
 
 app.use('/api', weatherRouter)
