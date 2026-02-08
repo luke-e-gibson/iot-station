@@ -7,8 +7,8 @@ const router = Router()
 
 router.post('/weather', (req: express.Request, res: express.Response) => {
     console.log('Received data:', req.body)
-    const { temperature, humidity } = req.body
-    void database.weather.addWeatherRecord(temperature, humidity)
+    const { temperature, humidity, device = 'default' } = req.body
+    void database.weather.addWeatherRecord(temperature, humidity, device)
     res.status(201).json({ message: 'Data inserted successfully' })
 })
 
