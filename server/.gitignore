@@ -27,6 +27,6 @@ build/
 
 #Database files
 *.db
-
+# Logs
 logs/
-*.log
+server.log
