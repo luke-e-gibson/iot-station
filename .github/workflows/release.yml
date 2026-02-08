@@ -127,6 +127,7 @@ jobs:
           COMPONENT_EXISTING_TAGS_DASHBOARD: ${{ env.COMPONENT_EXISTING_TAGS_DASHBOARD }}
         run: |
           ./.github/workflows/determine-versions.sh
+
   release:
     needs: Versioning
     if: ${{ needs.Versioning.outputs.has_releasable == 'true' }}
