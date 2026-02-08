@@ -13,6 +13,7 @@ Create a new weather record.
 **Request Body (JSON or x-www-form-urlencoded)**
   `temperature` (number, required)
   `humidity` (number, required)
+  `device` (string, required)
 
 **Responses**
   `201 Created`
