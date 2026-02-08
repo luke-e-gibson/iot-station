@@ -239,3 +239,59 @@
 [2026-02-08T09:46:15.697Z] [Iot Station Server] GET /api/devices/device_7/weather/latest?count=50 - 304 - 1ms 
 [2026-02-08T09:46:20.694Z] [Iot Station Server] GET /api/devices/get - 304 - 0ms 
 [2026-02-08T09:46:20.697Z] [Iot Station Server] GET /api/devices/device_7/weather/latest?count=50 - 304 - 0ms 
+[2026-02-08T22:45:55.003Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:45:55.004Z] [Iot Station Server] ⚠️  Debug routes are enabled at /api/_debug 
+[2026-02-08T22:46:00.554Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:46:00.554Z] [Iot Station Server] ⚠️  Debug routes are enabled at /api/_debug 
+[2026-02-08T22:46:04.899Z] [Iot Station Server] Running in production mode 
+[2026-02-08T22:46:12.612Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:46:12.612Z] [Iot Station Server] ⚠️  Debug routes are enabled at /api/_debug 
+[2026-02-08T22:46:14.932Z] [Iot Station Server] GET /api/_debug/ - 200 - 4ms 
+[2026-02-08T22:46:14.941Z] [Iot Station Server] GET /api/_debug/create-weather-records - 200 - 3ms 
+[2026-02-08T22:46:25.103Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:46:25.103Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:46:31.357Z] [Iot Station Server] Running in production mode 
+[2026-02-08T22:46:33.669Z] [Iot Station Server] GET /api/_debug/ - 200 - 0ms 
+[2026-02-08T22:46:33.677Z] [Iot Station Server] GET /api/weather/latest/5 - 404 - 2ms 
+[2026-02-08T22:46:59.720Z] [Iot Station Server] Running in production mode 
+[2026-02-08T22:47:02.045Z] [Iot Station Server] GET /api/_debug/ - 404 - 4ms 
+[2026-02-08T22:47:02.053Z] [Iot Station Server] GET /api/_debug/create-weather-records - 404 - 2ms 
+[2026-02-08T22:47:09.237Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:47:09.237Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:47:11.552Z] [Iot Station Server] GET /api/_debug/ - 404 - 1ms 
+[2026-02-08T22:47:11.558Z] [Iot Station Server] GET /api/_debug/create-weather-records - 404 - 0ms 
+[2026-02-08T22:47:30.868Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:47:30.868Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:47:34.179Z] [Iot Station Server] GET /api/_debug/ - 200 - 4ms 
+[2026-02-08T22:47:36.874Z] [Iot Station Server] Running in production mode 
+[2026-02-08T22:47:40.192Z] [Iot Station Server] GET /api/_debug/ - 200 - 1ms 
+[2026-02-08T22:48:03.101Z] [Iot Station Server] Running in production mode 
+[2026-02-08T22:48:06.400Z] [Iot Station Server] GET /api/_debug/ - 404 - 4ms 
+[2026-02-08T22:48:09.141Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:48:09.141Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:48:12.413Z] [Iot Station Server] GET /api/_debug/ - 404 - 1ms 
+[2026-02-08T22:48:21.958Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:48:21.958Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:48:26.244Z] [Iot Station Server] GET / - 404 - 0ms 
+[2026-02-08T22:48:26.250Z] [Iot Station Server] GET /api/_debug - 404 - 0ms 
+[2026-02-08T22:48:26.257Z] [Iot Station Server] GET /api/_debug/ - 404 - 0ms 
+[2026-02-08T22:48:26.272Z] [Iot Station Server] GET /api/weather/latest/1 - 404 - 1ms 
+[2026-02-08T22:48:40.670Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:48:40.671Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:48:44.970Z] [Iot Station Server] GET /api/weather - 200 - 2ms 
+[2026-02-08T22:48:44.978Z] [Iot Station Server] GET /api/weather/latest?count=1 - 200 - 1ms 
+[2026-02-08T22:48:44.987Z] [Iot Station Server] GET /api/_debug - 404 - 1ms 
+[2026-02-08T22:48:55.478Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:48:55.478Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:48:59.780Z] [Iot Station Server] GET /api/_debug - 404 - 1ms 
+[2026-02-08T22:48:59.787Z] [Iot Station Server] GET /api/_debug/ - 404 - 0ms 
+[2026-02-08T22:48:59.795Z] [Iot Station Server] GET /api/_debug/create-weather-records - 404 - 1ms 
+[2026-02-08T22:49:17.701Z] [Iot Station Server] Running in development mode 
+[2026-02-08T22:49:17.701Z] [Iot Station Server] isDevelopment() returns: true 
+[2026-02-08T22:49:17.701Z] [Iot Station Server] WARNING: Debug routes are enabled at /api/_debug 
+[2026-02-08T22:49:17.701Z] [Iot Station Server] Debug router registered 
+[2026-02-08T22:49:21.993Z] [Iot Station Server] GET /api/_debug/ - 200 - 5ms 
+[2026-02-08T22:49:28.857Z] [Iot Station Server] Running in production mode 
+[2026-02-08T22:49:28.857Z] [Iot Station Server] isDevelopment() returns: false 
+[2026-02-08T22:49:28.857Z] [Iot Station Server] Debug routes are disabled (production mode) 
+[2026-02-08T22:49:33.166Z] [Iot Station Server] GET /api/_debug/ - 404 - 4ms 

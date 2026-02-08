@@ -12,6 +12,9 @@ services:
   
   server:
     build: ./server
+    # Uncomment the line below to enable development mode
+    # environment:
+    #   - NODE_ENV=development
     expose:
       - "3000"
   
