@@ -17,11 +17,13 @@ app.use((req, res, next) => {
 })
 
 import weatherRouter from './api/weather'
+import devicesRouter from './api/devices'
+
 import debugRouter from './api/debug'
 
 app.use('/api/_debug', debugRouter)
 app.use('/api', weatherRouter)
-
+app.use('/api', devicesRouter)
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000')

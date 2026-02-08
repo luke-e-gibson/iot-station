@@ -5,13 +5,17 @@ export interface DatabaseTable {
 }
 
 export interface WeatherTable extends DatabaseTable {
-    addWeatherRecord(temperature: number, humidity: number): void,
-    getWeatherRecords(): Array<{ id: number, temperature: number, humidity: number, timestamp: string }>
-    getWeatherRecordsInTimeRange(start: string, end: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string }>
-    getLatestNWeatherRecords(n: number): Array<{ id: number, temperature: number, humidity: number, timestamp: string }>
+    addWeatherRecord(temperature: number, humidity: number, device: string): void,
+    getWeatherRecords(): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
+    getWeatherRecordsInTimeRange(start: string, end: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
+    getLatestNWeatherRecords(n: number): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
+
+    getLatestNWeatherRecordsFromDevice(n: number, device: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
+    getWeatherRecordsFromDevice(device: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
+
+    getDevices(): string[];
 
     _debug_create_test_data(): void;
-
 }
 
 export interface Database {
