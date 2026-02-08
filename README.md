@@ -2,6 +2,10 @@
 
 [![CI](https://github.com/luke-e-gibson/iot-station/actions/workflows/ci.yml/badge.svg)](https://github.com/luke-e-gibson/iot-station/actions/workflows/ci.yml) [![Release](https://github.com/luke-e-gibson/iot-station/actions/workflows/release.yml/badge.svg)](https://github.com/luke-e-gibson/iot-station/actions/workflows/release.yml)
 
+## Running the server:
+1. Clone the repo ```$ git clone https://github.com/luke-e-gibson/iot-station ``` and move to that directory ```$ cd iot-station ```
+3. Run the server and dashboard ```$ docker compose up --build -d ```
+4. The server should now be running on http://localhost:3000 or the local ip addrese on port 3000
 ## Software Used For Development:
 
 - [Docker](https://www.docker.com/): Container managment for deployment and testing
