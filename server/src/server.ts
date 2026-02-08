@@ -21,7 +21,17 @@ import devicesRouter from './api/devices'
 
 import debugRouter from './api/debug'
 
-app.use('/api/_debug', debugRouter)
+// Log environment mode
+const logger = instance.getLogger();
+const environment = instance.getConfig().getEnvironment();
+logger.log(`Running in ${environment} mode`);
+
+// Only register debug routes in development mode
+if (instance.getConfig().isDevelopment()) {
+    logger.log('WARNING: Debug routes are enabled at /api/_debug');
+    app.use('/api/_debug', debugRouter)
+}
+
 app.use('/api', weatherRouter)
 app.use('/api', devicesRouter)
 

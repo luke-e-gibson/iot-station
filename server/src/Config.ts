@@ -19,6 +19,7 @@ interface DatabaseConfigRaw {
 export class Config {
     private databaseConfig: DatabaseConfig = { type: "sqlite", config: { filename: ":memory:" } };
     private loggerConfig: LoggerConfig = { output: ["console"] };
+    private environment: string = process.env.NODE_ENV || 'development';
     
     constructor() {
 
@@ -59,5 +60,17 @@ export class Config {
             throw new Error("Logger configuration not loaded.");
         }
         return this.loggerConfig;
+    }
+
+    public isDevelopment(): boolean {
+        return this.environment === 'development';
+    }
+
+    public isProduction(): boolean {
+        return this.environment === 'production';
+    }
+
+    public getEnvironment(): string {
+        return this.environment;
     }
 }

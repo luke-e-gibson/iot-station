@@ -65,6 +65,13 @@ class ApiService {
     if (!response.ok) throw new Error('Failed to fetch weather stats');
     return response.json();
   }
+
+  async createMockData(): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/_debug/create-weather-records`);
+    if (!response.ok) throw new Error('Failed to create mock data');
+    return response.json();
+  }
 }
 
 export const api = new ApiService();
+export const isDevelopment = import.meta.env.DEV;
