@@ -2,12 +2,12 @@
 
 [![CI](https://github.com/luke-e-gibson/iot-station/actions/workflows/ci.yml/badge.svg)](https://github.com/luke-e-gibson/iot-station/actions/workflows/ci.yml) [![Release](https://github.com/luke-e-gibson/iot-station/actions/workflows/release.yml/badge.svg)](https://github.com/luke-e-gibson/iot-station/actions/workflows/release.yml)
 
-## TODO
-
-- [x] Establish server scaffolding and basic routes
-- [x] Set up the client project structure and build config
-- [ ] Implement the server core (API, database hooks, etc.)
-- [ ] Extend the client with the planned sensor modules
+## Software Used For Development:
+- [Docker](https://www.docker.com/): Container managment for deployment and testing
+- [Yak](https://yaak.app/): Used for API Testing/Documentation
+- [NodeJs](https://nodejs.org/en): Javascript runtime for server and creating webapp
+- [Pnpm](https://pnpm.io/): Package managemer used for node modules
+- [Platform IO](https://platformio.org/): Used for embeded development in vscode 
 
 ## CI & Release workflow flags
 
