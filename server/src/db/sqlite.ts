@@ -67,6 +67,13 @@ CREATE TABLE IF NOT EXISTS weather_data (
         return statement.all(n) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string }>
     }
 
+    getDevices(): string[] {
+        this._logger.log("Fetching distinct devices...");
+        const statement = this.database.prepare('SELECT DISTINCT device FROM weather_data')
+        const rows = statement.all() as Array<{ device: string }>
+        return rows.map(r => r.device)
+    }
+
     _debug_create_test_data() {
         this._logger.log("Creating test data...");
         const insert = this.database.prepare('INSERT INTO weather_data (temperature, humidity, device) VALUES (?, ?, ?)')
