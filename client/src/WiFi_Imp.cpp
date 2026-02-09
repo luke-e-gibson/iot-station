@@ -29,14 +29,12 @@ void connect_wifi(const char *ssid, const char *password)
     }
 #endif
 
-    int status = WL_IDLE_STATUS;
-
-    while (status != WL_CONNECTED)
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED)
     {
         Serial.print("Attempting to connect to Network named: ");
         Serial.println(ssid);
-        status = WiFi.begin(ssid, password);
-        delay(5000);
+        delay(1000);
     }
 
     Serial.println("Connected to WiFi");
