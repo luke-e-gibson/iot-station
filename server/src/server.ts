@@ -26,14 +26,6 @@ const logger = instance.getLogger();
 const environment = instance.getConfig().getEnvironment();
 logger.log(`Running in ${environment} mode`);
 
-process.on('uncaughtException', (error) => {
-    logger.error('Uncaught exception encountered, keeping server alive', error);
-});
-
-process.on('unhandledRejection', (reason: unknown) => {
-    logger.error('Unhandled promise rejection encountered, keeping server alive', reason);
-});
-
 // Only register debug routes in development mode
 if (instance.getConfig().isDevelopment()) {
     logger.log('WARNING: Debug routes are enabled at /api/_debug');
@@ -43,6 +35,31 @@ if (instance.getConfig().isDevelopment()) {
 app.use('/api', weatherRouter)
 app.use('/api', devicesRouter)
 
-app.listen(3000, () => {
+const server = app.listen(3000, () => {
     console.log('Server is running on port 3000')
 })
+
+/**
+ * Log a fatal error context and attempt a graceful shutdown, forcing exit if the HTTP server
+ * does not close within the timeout.
+ */
+const gracefulShutdown = (context: string, error: unknown) => {
+    logger.error(`${context} - initiating graceful shutdown`, error);
+    const shutdownTimeout = setTimeout(() => {
+        logger.error('Force exiting after graceful shutdown timeout');
+        process.exit(1);
+    }, 5000);
+    server.close(() => {
+        clearTimeout(shutdownTimeout);
+        logger.error('HTTP server closed after fatal error');
+        process.exit(1);
+    });
+};
+
+process.on('uncaughtException', (error) => {
+    gracefulShutdown('Uncaught exception encountered', error);
+});
+
+process.on('unhandledRejection', (reason: unknown) => {
+    gracefulShutdown('Unhandled promise rejection encountered', reason);
+});

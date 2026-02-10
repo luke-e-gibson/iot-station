@@ -9,7 +9,7 @@ The Raspberry Pi server experienced unexpected crashes during long-running opera
 
 ### Changes implemented
 - Added a defensive `error` handler to the log file stream to gracefully disable file logging and fall back to console logging if file I/O fails, preventing crashes from log write failures.
-- Registered `uncaughtException` and `unhandledRejection` handlers that log the failure details and keep the server running to avoid process termination from unexpected errors.
+- Registered `uncaughtException` and `unhandledRejection` handlers that log the failure details and trigger a controlled shutdown (with timeout) so a supervisor can restart the service without leaving the process in an undefined state.
 
 ### Verification
 - No automated tests are available for the server package. Changes were reviewed for minimal surface area and alignment with existing logging patterns.
