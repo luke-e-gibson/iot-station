@@ -26,6 +26,14 @@ const logger = instance.getLogger();
 const environment = instance.getConfig().getEnvironment();
 logger.log(`Running in ${environment} mode`);
 
+process.on('uncaughtException', (error) => {
+    logger.error('Uncaught exception encountered, keeping server alive', error);
+});
+
+process.on('unhandledRejection', (reason: unknown) => {
+    logger.error('Unhandled promise rejection encountered, keeping server alive', reason);
+});
+
 // Only register debug routes in development mode
 if (instance.getConfig().isDevelopment()) {
     logger.log('WARNING: Debug routes are enabled at /api/_debug');

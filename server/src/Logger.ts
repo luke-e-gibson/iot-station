@@ -28,6 +28,11 @@ export class Logger {
                 fs.mkdirSync(dirPath, { recursive: true });
             }
             this.fileStream = fs.createWriteStream(this.filePath, { flags: 'a' });
+            this.fileStream.on('error', (error) => {
+                console.error(`Logger file stream error at ${this.filePath}:`, error);
+                this.fileLoggingEnabled = false;
+                this.fileStream = undefined;
+            });
         } catch (error) {
             console.error(`Failed to initialize log file at ${this.filePath}:`, error);
             this.fileLoggingEnabled = false;
