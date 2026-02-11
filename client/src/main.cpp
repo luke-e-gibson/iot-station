@@ -2,7 +2,11 @@
 #include <ArduinoJson.h>
 
 #include "WiFi_Imp.h"
+#include "DeepSleep_Impl.h"
 #include "arduino_secrets.h"
+
+#define SENSOR_BME280
+#include "Sensor.h"
 
 JsonDocument doc;
 WiFiClient wifi;
@@ -12,6 +16,7 @@ void setup()
 {
   Serial.begin(9600);
   connect_wifi(SECRET_SSID, SECRET_PASS);
+  init_sensor();
 }
 
 void loop()
@@ -19,10 +24,11 @@ void loop()
   if (WiFi.status() == WL_CONNECTED)
   {
     doc.clear();
-    doc["temperature"] = random(10, 31);
-    doc["humidity"] = random(10, 31);
+    doc["temperature"] = read_temperature();
+    doc["humidity"] = read_humidity();
+    doc["device"] = "ESP8266-Bedroom";
 
-    if (send_json_data(doc, client, "/weather"))
+    if (send_json_data(doc, client, "/api/weather"))
     {
       if (Serial)
       {
@@ -39,7 +45,7 @@ void loop()
         print_wifi_status();
       }
     }
-    delay(60000);
+    deepSleep(60);
   }
   else
   {

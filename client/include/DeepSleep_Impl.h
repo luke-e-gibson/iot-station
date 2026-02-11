@@ -1,0 +1,1 @@
+void deepSleep(int seconds);
