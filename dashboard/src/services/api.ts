@@ -66,6 +66,24 @@ class ApiService {
     return response.json();
   }
 
+  async getWeatherRecordsInRange(start: string, end: string): Promise<WeatherRecord[]> {
+    const response = await fetch(`${API_BASE_URL}/weather/range?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    if (!response.ok) throw new Error('Failed to fetch weather records in range');
+    return response.json();
+  }
+
+  async getDeviceWeatherRecordsInRange(device: string, start: string, end: string): Promise<WeatherRecord[]> {
+    const response = await fetch(`${API_BASE_URL}/devices/${encodeURIComponent(device)}/weather/range?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    if (!response.ok) throw new Error('Failed to fetch device weather records in range');
+    return response.json();
+  }
+
+  async getWeatherStatsInRange(start: string, end: string): Promise<WeatherStats> {
+    const response = await fetch(`${API_BASE_URL}/weather/stats?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`);
+    if (!response.ok) throw new Error('Failed to fetch weather stats in range');
+    return response.json();
+  }
+
   async createMockData(): Promise<{ message: string }> {
     const response = await fetch(`${API_BASE_URL}/_debug/create-weather-records`);
     if (!response.ok) throw new Error('Failed to create mock data');

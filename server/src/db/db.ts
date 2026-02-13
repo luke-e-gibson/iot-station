@@ -12,6 +12,7 @@ export interface WeatherTable extends DatabaseTable {
 
     getLatestNWeatherRecordsFromDevice(n: number, device: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
     getWeatherRecordsFromDevice(device: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
+    getWeatherRecordsFromDeviceInTimeRange(device: string, start: string, end: string): Array<{ id: number, temperature: number, humidity: number, timestamp: string, device: string }>
 
     getDevices(): string[];
 
