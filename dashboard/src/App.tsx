@@ -6,6 +6,7 @@ import { Thermometer, Droplets, TrendingUp, TrendingDown, Database } from "lucid
 import { api, isDevelopment, type WeatherRecord, type WeatherStats } from "./services/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { DateRangeSelector, type DateRangePreset, getDateRangeFromPreset } from "@/components/DateRangeSelector"
 
 const chartConfig = {
   temperature: {
@@ -23,6 +24,7 @@ function App() {
   const [stats, setStats] = useState<WeatherStats | null>(null)
   const [devices, setDevices] = useState<string[]>([])
   const [selectedDevice, setSelectedDevice] = useState("all")
+  const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>("24h")
   const [loading, setLoading] = useState(true)
   const [creatingMockData, setCreatingMockData] = useState(false)
 
@@ -68,19 +70,45 @@ function App() {
 
         setDevices(Array.from(discovered).sort())
 
+        const dateRange = getDateRangeFromPreset(dateRangePreset)
+        
+        // Fetch data based on device selection and date range
         if (selectedDevice === "all") {
-          const [latestData, statsData] = await Promise.all([
-            api.getLatestWeatherRecords(50),
-            api.getWeatherStats(),
-          ])
-          if (!active) return
-          setData(latestData)
-          setStats(statsData)
+          // All devices
+          if (dateRange.start && dateRange.end) {
+            // With date range
+            const [rangeData, statsData] = await Promise.all([
+              api.getWeatherRecordsInRange(dateRange.start, dateRange.end),
+              api.getWeatherStatsInRange(dateRange.start, dateRange.end),
+            ])
+            if (!active) return
+            setData(rangeData)
+            setStats(statsData)
+          } else {
+            // All time
+            const [latestData, statsData] = await Promise.all([
+              api.getLatestWeatherRecords(50),
+              api.getWeatherStats(),
+            ])
+            if (!active) return
+            setData(latestData)
+            setStats(statsData)
+          }
         } else {
-          const latestData = await api.getDeviceLatestWeatherRecords(selectedDevice, 50)
-          if (!active) return
-          setData(latestData)
-          setStats(computeStats(latestData))
+          // Specific device
+          if (dateRange.start && dateRange.end) {
+            // With date range
+            const rangeData = await api.getDeviceWeatherRecordsInRange(selectedDevice, dateRange.start, dateRange.end)
+            if (!active) return
+            setData(rangeData)
+            setStats(computeStats(rangeData))
+          } else {
+            // All time
+            const latestData = await api.getDeviceLatestWeatherRecords(selectedDevice, 50)
+            if (!active) return
+            setData(latestData)
+            setStats(computeStats(latestData))
+          }
         }
       } catch (error) {
         console.error("Error fetching data:", error)
@@ -95,7 +123,7 @@ function App() {
       active = false
       clearInterval(interval)
     }
-  }, [selectedDevice])
+  }, [selectedDevice, dateRangePreset])
 
   // Data for chart (reversed to show chronological order)
   const chartData = data.slice().reverse().map(item => ({
@@ -130,6 +158,7 @@ function App() {
             <p className="text-muted-foreground">Real-time temperature and humidity monitoring.</p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end">
+            <DateRangeSelector value={dateRangePreset} onValueChange={setDateRangePreset} />
             <div className="flex w-full flex-col gap-1 sm:w-auto">
               <span className="text-xs font-semibold uppercase text-muted-foreground">Device</span>
               <Select value={selectedDevice} onValueChange={setSelectedDevice}>
