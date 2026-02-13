@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts"
@@ -55,6 +55,8 @@ function App() {
     }
   }
 
+  const dateRange = useMemo(() => getDateRangeFromPreset(dateRangePreset), [dateRangePreset])
+
   useEffect(() => {
     let active = true
 
@@ -69,8 +71,6 @@ function App() {
         }
 
         setDevices(Array.from(discovered).sort())
-
-        const dateRange = getDateRangeFromPreset(dateRangePreset)
         
         // Fetch data based on device selection and date range
         if (selectedDevice === "all") {
@@ -123,7 +123,7 @@ function App() {
       active = false
       clearInterval(interval)
     }
-  }, [selectedDevice, dateRangePreset])
+  }, [selectedDevice, dateRange])
 
   // Data for chart (reversed to show chronological order)
   const chartData = data.slice().reverse().map(item => ({
