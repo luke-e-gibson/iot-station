@@ -86,6 +86,12 @@ CREATE TABLE IF NOT EXISTS weather_data (
         return statement.all(device, n) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string; }>
     }
 
+    getWeatherRecordsFromDeviceInTimeRange(device: string, start: string, end: string): Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string; }> {
+        this._logger.log(`Fetching weather records from device ${device} between ${start} and ${end}...`);
+        const statement = this.database.prepare('SELECT * FROM weather_data WHERE device = ? AND timestamp BETWEEN ? AND ? ORDER BY timestamp DESC')
+        return statement.all(device, start, end) as Array<{ id: number; temperature: number; humidity: number; timestamp: string; device: string; }>
+    }
+
     _debug_create_test_data() {
         this._logger.log("Creating test data...");
         const insert = this.database.prepare('INSERT INTO weather_data (temperature, humidity, device) VALUES (?, ?, ?)')

@@ -30,4 +30,23 @@ router.get("/devices/:device/weather/latest", (req: express.Request, res: expres
     res.json(records)
 })
 
+router.get("/devices/:device/weather/range", (req: express.Request, res: express.Response) => {
+    const device = req.params.device;
+    const start = req.query.start as string
+    const end = req.query.end as string
+    
+    if(!device) {
+        res.status(400).json({ error: "Device parameter is required" })
+        return;
+    }
+    
+    if (!start || !end) {
+        res.status(400).json({ error: 'Start and end parameters are required' })
+        return;
+    }
+    
+    const records = database.weather.getWeatherRecordsFromDeviceInTimeRange(device as string, start, end);
+    res.json(records)
+})
+
 export default router

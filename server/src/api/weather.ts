@@ -23,8 +23,28 @@ router.get('/weather/latest', (req: express.Request, res: express.Response) => {
     res.json(data)
 })
 
+router.get('/weather/range', (req: express.Request, res: express.Response) => {
+    const start = req.query.start as string
+    const end = req.query.end as string
+    
+    if (!start || !end) {
+        return res.status(400).json({ error: 'Start and end parameters are required' })
+    }
+    
+    const data = database.weather.getWeatherRecordsInTimeRange(start, end)
+    res.json(data)
+})
+
 router.get('/weather/stats', (req: express.Request, res: express.Response) => {
-    const records = database.weather.getWeatherRecords()
+    const start = req.query.start as string
+    const end = req.query.end as string
+    
+    let records;
+    if (start && end) {
+        records = database.weather.getWeatherRecordsInTimeRange(start, end)
+    } else {
+        records = database.weather.getWeatherRecords()
+    }
     
     if (records.length === 0) {
         return res.json({
