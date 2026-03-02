@@ -1,6 +1,6 @@
 let API_BASE_URL: string;
 if(import.meta.env.DEV) {
-  API_BASE_URL = 'http://localhost:3000/api';
+  API_BASE_URL = import.meta.env.VITE_BASE_URL ? import.meta.env.VITE_BASE_URL + "/api" : 'http://localhost:3000/api';
 } else {
   API_BASE_URL = '/api';
 }
